@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Half-Finished Still Counts — Equivalent Units in Process Costing</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#7c3aed; --accent2:#a78bfa; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:700px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .eu-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin:.85rem 0 1rem}
+  .eu-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.75rem;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.06)}
+  .eu-k{display:block;font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);line-height:1.15}
+  .eu-v{display:block;font-size:.98rem;font-weight:900;color:var(--ink);line-height:1.3;margin-top:.25rem}
+  .eu-note{grid-column:1/-1;border:1px solid #c4b5fd;background:#f5f3ff;border-left:5px solid var(--accent);border-radius:10px;padding:.65rem .8rem;text-align:center;font-size:.86rem;font-weight:850;color:#4c1d95}
+  @media(max-width:760px){.eu-map{grid-template-columns:1fr}}
+  .scene{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .group{ border:2px solid var(--line); border-radius:14px; padding:.9rem; text-align:center; background:#fbfaff; }
+  .group h3{ font-size:.9rem; margin-bottom:.5rem; } .group .gc{ font-size:.74rem; color:var(--muted); margin-bottom:.6rem; }
+  .bottles{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:64px; align-items:end; }
+  .bottle{ width:20px; height:46px; border:2px solid #b9a7e8; border-radius:4px 4px 7px 7px; position:relative; overflow:hidden; background:#fff; }
+  .bottle .lvl{ position:absolute; left:0; right:0; bottom:0; background:linear-gradient(180deg,#a78bfa,#7c3aed); transition:height .6s ease; }
+  .bottle::before{ content:""; position:absolute; top:-5px; left:5px; width:8px; height:5px; background:#b9a7e8; border-radius:2px; }
+  .count{ font-size:1.5rem; font-weight:900; color:var(--accent); margin-top:.4rem; }
+  .count small{ display:block; font-size:.66rem; font-weight:700; color:var(--muted); text-transform:uppercase; }
+
+  .eqbox{ margin-top:1rem; border:2px dashed var(--accent); border-radius:14px; padding:1rem; text-align:center; display:none; }
+  .eqbox.show{ display:block; animation:rise .4s ease; } @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .calc{ font-size:1.05rem; font-weight:800; line-height:1.9; } .calc .big{ font-size:1.5rem; font-weight:900; color:var(--accent); }
+
+  .assign{ margin-top:1rem; display:none; max-width:100%; overflow-x:hidden; } .assign.show{ display:block; animation:rise .4s ease; }
+  table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:.88rem; border:2px solid var(--line); border-radius:10px; overflow:hidden; }
+  th,td{ padding:.55rem .7rem; text-align:right; } th:first-child,td:first-child{ text-align:left; }
+  th,td{ white-space:normal; overflow-wrap:anywhere; }
+  thead th{ background:#f3f0fc; font-size:.68rem; text-transform:uppercase; color:var(--muted); letter-spacing:.04em; }
+  tbody tr{ border-top:1px solid var(--line); } tr.tot td{ border-top:2px solid var(--accent); font-weight:900; }
+
+  .predict{ border:2px dashed var(--accent); background:#f5f3ff; border-radius:12px; padding:.85rem 1rem; margin:.8rem 0; display:none; }
+  .predict.show{ display:block; animation:rise .3s ease; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.85rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#ede9fe; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .status{ min-height:28px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; }
+  .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .scene{ grid-template-columns:1fr; } table{font-size:.76rem} th,td{padding:.42rem .34rem} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 4 · Process Costing</div>
+  <h1>Half-Finished Still Counts 🍾</h1>
+  <p class="subtitle">Convert half-done bottles into equivalent whole units to find cost per bottle.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🍾 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+
+
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Completed units</span><span class="fact-val">8,000 at 100%</span></div>
+    <div class="fact"><span class="fact-label">Ending WIP</span><span class="fact-val">2,000 at 50%</span></div>
+    <div class="fact"><span class="fact-label">Equivalent units</span><span class="fact-val">9,000 EU</span></div>
+    <div class="fact"><span class="fact-label">Total cost</span><span class="fact-val">$45,000</span></div>
+  </div>
+  <div class="eu-map" aria-label="Equivalent unit conversion map">
+    <div class="eu-card"><span class="eu-k">Completed</span><span class="eu-v">8,000 x 100% = 8,000 EU</span></div>
+    <div class="eu-card"><span class="eu-k">Ending WIP</span><span class="eu-v">2,000 x 50% = 1,000 EU</span></div>
+    <div class="eu-card"><span class="eu-k">Total work done</span><span class="eu-v">9,000 equivalent units</span></div>
+    <div class="eu-note">Equivalent units measure work done, not just bottles physically sitting in the department.</div>
+  </div>
+<div class="status" id="status" role="status" aria-live="polite">Start by counting the work that's actually been done.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="b0" onclick="goEU()">1 · Find Equivalent Units</button>
+    <button class="btn btn-accent" id="b1" onclick="goCost()" disabled>2 · Cost per Equivalent Unit</button>
+    <button class="btn btn-accent" id="b2" onclick="goAssign()" disabled>3 · Assign the $45,000</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+<div class="scene">
+    <div class="group">
+      <h3>✅ Completed &amp; transferred out</h3>
+      <div class="gc">Fully done this period</div>
+      <div class="bottles" id="fullBottles"></div>
+      <div class="count">8,000<small>physical units · 100%</small></div>
+    </div>
+    <div class="group">
+      <h3>🛠️ Ending Work in Process</h3>
+      <div class="gc">Still on the line, 50% complete</div>
+      <div class="bottles" id="halfBottles"></div>
+      <div class="count">2,000<small>physical units · 50%</small></div>
+    </div>
+  </div>
+
+  <div class="predict" id="predict">
+    <div class="pq">🔮 Predict: 2,000 units are 50% complete. How many <strong>equivalent whole units</strong> of work do they represent?</div>
+    <div>
+      <button class="pbtn" onclick="predict('a')">2,000</button>
+      <button class="pbtn" onclick="predict('b')">1,000</button>
+      <button class="pbtn" onclick="predict('c')">500</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="eqbox" id="eqbox">
+    <div class="calc">
+      Equivalent Units = 8,000 + (2,000 × 50%) = 8,000 + 1,000 = <span class="big">9,000 EU</span>
+      <div id="costPer" style="margin-top:.5rem;"></div>
+    </div>
+  </div>
+
+  <div class="assign" id="assignBox">
+    <table>
+      <thead><tr><th>Where the cost goes</th><th>Equivalent units</th><th>× Cost/EU</th><th>Cost assigned</th></tr></thead>
+      <tbody>
+        <tr><td>Completed &amp; transferred out</td><td>8,000</td><td>$5</td><td>$40,000</td></tr>
+        <tr><td>Ending Work in Process</td><td>1,000</td><td>$5</td><td>$5,000</td></tr>
+        <tr class="tot"><td>Total cost accounted for</td><td>9,000</td><td></td><td>$45,000</td></tr>
+      </tbody>
+    </table>
+  </div><div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Equivalent units are <strong>not</strong> the same as physical units. The 2,000 half-done bottles count as only <strong>1,000</strong> equivalent units of effort. Also, materials and conversion can be at <em>different</em> percentages — materials are often 100% complete (added at the start) even when conversion is only 50% — so they may need separate equivalent-unit calculations.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">5,000 units are completed and 4,000 units are 25% complete. Equivalent units are:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) 9,000</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) 6,000</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) 5,000</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) 1,000</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Cost per equivalent unit is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Total cost ÷ physical units</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Total cost ÷ equivalent units</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Equivalent units ÷ total cost</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Total cost ÷ units started</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Why do we use equivalent units instead of just physical units?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Partly-finished units only absorbed part of the period's work and cost</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Partly-finished units absorbed a full period of cost</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) It always lowers the cost per unit</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Equivalent units equal sales</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Equivalent units make partly finished production count fairly in process costing.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Equivalent units:</strong> Fully complete units represented by the work done.</li><li><strong>Conversion cost:</strong> Direct labor plus overhead.</li><li><strong>Percent complete:</strong> How much work has been done on units still in process.</li><li><strong>Cost per equivalent unit:</strong> Cost divided by equivalent units.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Partly finished units count, but only for the percentage of work completed.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Equivalent units = physical units x percent complete. Cost per equivalent unit = cost to account for / equivalent units.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Calculate</strong> equivalent units = units completed + (ending WIP × % complete) in a simplified no-beginning-WIP example.</li>
+    <li><strong>Compute</strong> cost per equivalent unit.</li>
+    <li><strong>Assign</strong> total cost to units completed and to ending work in process.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 4 · Process costing &amp; equivalent units</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+let step=0, predicted=false;
+// draw representative bottles (1 icon = 1,000 units)
+(function draw(){
+  const full=$('fullBottles'), half=$('halfBottles');
+  for(let i=0;i<8;i++){ const b=document.createElement('div'); b.className='bottle'; const l=document.createElement('div'); l.className='lvl'; l.style.height='100%'; b.appendChild(l); full.appendChild(b); }
+  for(let i=0;i<2;i++){ const b=document.createElement('div'); b.className='bottle'; const l=document.createElement('div'); l.className='lvl'; l.style.height='0%'; b.appendChild(l); half.appendChild(b); setTimeout(()=>l.style.height='50%',300); }
+})();
+
+function goEU(){
+  if(step>0) return; step=1;
+  $('predict').classList.add('show');
+  $('eqbox').classList.add('show');
+  $('status').innerHTML='Equivalent units = 8,000 + (2,000 × 50%) = <strong>9,000</strong>.';
+  $('b0').disabled=true; $('b1').disabled=false;
+}
+function goCost(){
+  if(step!==1) return; step=2;
+  $('costPer').innerHTML='Cost per Equivalent Unit = $45,000 ÷ 9,000 = <span class="big">$5 / EU</span>';
+  $('status').innerHTML='Each equivalent unit of work cost <strong>$5</strong>.';
+  $('b1').disabled=true; $('b2').disabled=false;
+}
+function goAssign(){
+  if(step!==2) return; step=3;
+  $('assignBox').classList.add('show');
+  $('status').innerHTML='🎉 All $45,000 accounted for: $40,000 to finished units, $5,000 stays in WIP.';
+  $('status').style.color='#059669';
+  $('b2').disabled=true;
+}
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='b', fb)) return; predicted=true; if(ans==='b'){ fb.textContent='✅ Correct! 2,000 × 50% = 1,000 equivalent whole units of effort.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ Multiply physical units by completion: 2,000 × 50% = 1,000 equivalent units.'; fb.style.color='#dc2626'; }
+}
+function resetAll(){ resetPredictGates();
+  step=0; predicted=false;
+  $('eqbox').classList.remove('show'); $('assignBox').classList.remove('show'); $('predict').classList.remove('show');
+  $('costPer').innerHTML=''; $('pfb').textContent='';
+  $('b0').disabled=false; $('b1').disabled=true; $('b2').disabled=true;
+  $('status').textContent="Start by counting the work that's actually been done."; $('status').style.color='';
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'A'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: equivalent units = completed units + equivalent work in ending WIP = 5,000 + (4,000 x 25%) = 6,000 equivalent units.",
+    "err": "Not quite. Solution: partially complete units count only for the work completed. 4,000 units at 25% complete equal 1,000 equivalent units; 5,000 + 1,000 = 6,000."
+  },
+  "q2": {
+    "ok": "Correct. Solution: cost per equivalent unit = total costs to account for / total equivalent units. This converts total department cost into a cost per completed-equivalent unit.",
+    "err": "Not quite. Solution: in process costing, divide total costs by equivalent units, not just physical units, because some units are only partly complete."
+  },
+  "q3": {
+    "ok": "Correct. Solution: equivalent units let us combine completed units and partially completed units on the same basis. A unit that is 25% complete is not the same as a fully completed unit.",
+    "err": "Not quite. Solution: physical unit counts ignore how much work has been done. Equivalent units measure the amount of completed work represented by both finished and partially finished units."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'){ if(step===0)goEU(); else if(step===1)goCost(); else if(step===2)goAssign(); } });
+</script>
+</body>
+</html>

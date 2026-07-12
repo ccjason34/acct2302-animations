@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Two Levers Behind ROI — Margin × Turnover</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#6d28d9; --accent2:#c4b5fd; --margin:#2563eb; --turn:#0891b2; --roi:#6d28d9; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1000px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:710px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .levers{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  .lever{ border:2px solid var(--line); border-radius:12px; padding:.9rem; text-align:center; }
+  .lever.m{ border-color:#bfdbfe; } .lever.t{ border-color:#a5f3fc; }
+  .lever .ll{ font-size:.72rem; font-weight:900; text-transform:uppercase; color:var(--muted); }
+  .lever .lf{ font-size:.66rem; color:#8595a6; margin-bottom:.3rem; }
+  .lever .lv{ font-size:1.6rem; font-weight:900; } .lever.m .lv{ color:var(--margin);} .lever.t .lv{ color:var(--turn);}
+  .lever input[type=range]{ width:90%; }
+  .lever.m input{ accent-color:var(--margin);} .lever.t input{ accent-color:var(--turn);}
+
+  .roibox{ text-align:center; border:3px solid var(--accent2); border-radius:14px; padding:1rem; background:#f5f3ff; }
+  .roibox .eq{ font-size:1rem; font-weight:800; color:#5b21b6; } .roibox .eq b{ color:var(--margin);} .roibox .eq i{ color:var(--turn); font-style:normal;}
+  .roibox .roiv{ font-size:2.4rem; font-weight:900; color:var(--roi); margin:.2rem 0; }
+  .roibar{ height:14px; background:#ede9fe; border-radius:7px; overflow:hidden; margin:.5rem auto 0; max-width:480px; }
+  .roifill{ height:100%; background:linear-gradient(90deg,#a78bfa,#6d28d9); width:50%; transition:width .3s; }
+
+  .ri{ display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-top:1rem; }
+  .ric{ border:2px solid var(--line); border-radius:10px; padding:.55rem .3rem; text-align:center; background:#f9fbfd; }
+  .ric .rl{ font-size:.6rem; font-weight:900; text-transform:uppercase; color:var(--muted); } .ric .rv{ font-size:1rem; font-weight:900; }
+  .ric.income .rv{ color:#0f172a;} .ric.req .rv{ color:#b45309;} .ric.resid .rv{ color:var(--accent);}
+
+  .predict{ border:2px dashed var(--accent); background:#f5f3ff; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.85rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#ede9fe; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .levers{ grid-template-columns:1fr;} .ri{ grid-template-columns:1fr;} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 11 · Responsibility Centers</div>
+  <h1>Two Levers Behind ROI 🎛️</h1>
+  <p class="subtitle">A division manager is judged on Return on Investment. ROI breaks into two levers — <strong>profit margin</strong> and <strong>asset turnover</strong>. Pull each one and watch ROI respond. (Average operating assets fixed at $500,000.)</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🎛️ Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Operating assets</span><span class="fact-val">$500,000</span></div>
+    <div class="fact"><span class="fact-label">Profit margin</span><span class="fact-val">10%</span></div>
+    <div class="fact"><span class="fact-label">Asset turnover</span><span class="fact-val">2.0x</span></div>
+    <div class="fact"><span class="fact-label">Required return</span><span class="fact-val">12%</span></div>
+  </div>
+<div class="levers">
+    <div class="lever m">
+      <div class="ll">Lever 1 · Profit Margin</div>
+      <div class="lf">Operating income ÷ Sales</div>
+      <div class="lv" id="mVal">10%</div>
+      <input type="range" id="mSlide" min="4" max="16" step="1" value="10" oninput="update()" aria-label="Profit margin percent">
+    </div>
+    <div class="lever t">
+      <div class="ll">Lever 2 · Asset Turnover</div>
+      <div class="lf">Sales ÷ Average operating assets</div>
+      <div class="lv" id="tVal">2.0×</div>
+      <input type="range" id="tSlide" min="0.5" max="3" step="0.1" value="2" oninput="update()" aria-label="Asset turnover">
+    </div>
+  </div>
+
+  <div class="roibox">
+    <div class="eq">ROI = <b id="eqM">10%</b> × <i id="eqT">2.0</i></div>
+    <div class="roiv" id="roiVal">20.0%</div>
+    <div class="roibar"><div class="roifill" id="roiFill"></div></div>
+  </div>
+
+  <div class="ri">
+    <div class="ric income"><div class="rl">Operating income</div><div class="rv" id="incVal">$100,000</div></div>
+    <div class="ric req"><div class="rl">Required return (12%)</div><div class="rv" id="reqVal">$60,000</div></div>
+    <div class="ric resid"><div class="rl">Residual income</div><div class="rv" id="riVal">$40,000</div></div>
+  </div>
+
+  <div class="predict">
+    <div class="pq">🔮 Predict: a warehouse store keeps the same thin profit margin but generates <strong>twice as many sales dollars per dollar of assets</strong> (asset turnover doubles). What happens to ROI?</div>
+    <div>
+      <button class="pbtn" onclick="predict('double')">It roughly doubles</button>
+      <button class="pbtn" onclick="predict('same')">No change</button>
+      <button class="pbtn" onclick="predict('half')">It halves</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Beware the "ROI trap": a manager with a 20% ROI may reject a solid 15% project just to protect their average, even though it beats the 12% required return. <strong>Residual income</strong> avoids that trap by measuring dollars above the required return.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">ROI can be expressed as:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Profit margin + asset turnover</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Profit margin × asset turnover</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Sales ÷ income</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Assets × income</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Operating income $100,000; average operating assets $500,000. ROI is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) 5%</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) 20%</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) 50%</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) 200%</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Residual income is best described as:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Operating income left after subtracting the required return on assets</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Sales left after subtracting variable costs</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Average operating assets divided by income</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Profit margin multiplied by sales price</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>ROI can improve because margins rise, assets are used better, or both.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>ROI:</strong> Operating income divided by average operating assets.</li><li><strong>Margin:</strong> Operating income divided by sales.</li><li><strong>Turnover:</strong> Sales divided by average operating assets.</li><li><strong>Residual income:</strong> Income above the required return on assets.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>ROI is not one lever. It combines profitability and asset use.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>ROI = margin x turnover. Residual income = operating income - required return on operating assets.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Compute</strong> ROI as profit margin × asset turnover.</li>
+    <li><strong>Explain</strong> two ways to improve ROI.</li>
+    <li><strong>Calculate</strong> residual income and see why it can beat ROI for decisions.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 11 · ROI, residual income &amp; segments</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const ASSETS=500000, REQRATE=0.12;
+function fmt(n){ const s=Math.round(Math.abs(n)).toLocaleString(); return n<0?'−$'+s:'$'+s; }
+function update(){
+  const m=+$('mSlide').value, t=+$('tSlide').value;
+  const roi=m/100*t; // decimal
+  $('mVal').textContent=m+'%'; $('tVal').textContent=t.toFixed(1)+'×';
+  $('eqM').textContent=m+'%'; $('eqT').textContent=t.toFixed(1);
+  $('roiVal').textContent=(roi*100).toFixed(1)+'%';
+  $('roiFill').style.width=Math.min(100, roi*100/40*100)+'%';
+  const income=roi*ASSETS, req=REQRATE*ASSETS, ri=income-req;
+  $('incVal').textContent=fmt(income); $('reqVal').textContent=fmt(req); $('riVal').textContent=fmt(ri);
+  $('riVal').style.color = ri>=0 ? 'var(--accent)' : '#dc2626';
+}
+let predicted=false;
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='double', fb)) return; predicted=true; if(ans==='double'){ fb.textContent='✅ Correct! ROI = margin × turnover, so doubling turnover (same margin) roughly doubles ROI. Drag the turnover lever to see it.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ ROI is margin × turnover, so doubling turnover roughly doubles ROI. Try dragging the turnover lever.'; fb.style.color='#dc2626'; }
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'A'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: ROI can be calculated as operating income / average operating assets, and it can also be decomposed as margin x turnover.",
+    "err": "Not quite. Solution: ROI measures return earned on operating assets. The DuPont view breaks ROI into margin and turnover."
+  },
+  "q2": {
+    "ok": "Correct. Solution: ROI = operating income / average operating assets = $100,000 / $500,000 = 20%.",
+    "err": "Not quite. Solution: divide operating income by average operating assets. $100,000 / $500,000 = 0.20, or 20%."
+  },
+  "q3": {
+    "ok": "Correct. Solution: residual income asks whether a segment earned more than the required return on the assets it used.",
+    "err": "Not quite. Solution: residual income starts with operating income, then subtracts the dollar amount of required return on operating assets."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; const m=$('mSlide'); if(e.key==='ArrowRight'){ m.value=Math.min(16,+m.value+1); update(); } if(e.key==='ArrowLeft'){ m.value=Math.max(4,+m.value-1); update(); } });
+update();
+</script>
+</body>
+</html>

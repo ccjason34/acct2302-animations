@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IRR vs NPV — The Rate Where NPV Hits Zero</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#065f46;--accent2:#34d399;--good:#059669;--bad:#dc2626;--warn:#b45309;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1020px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.9rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:740px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:780px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}.facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}.assumption{max-width:760px;margin:0 auto 1rem;background:#f0fdfa;border:1px solid #99f6e4;border-left:5px solid #14b8a6;border-radius:10px;padding:.65rem .85rem;color:#115e59;font-size:.84rem;font-weight:750}
+  .model{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:.6rem 0 1rem}.step-card{border:2px solid var(--line);border-radius:14px;background:#f9fbfd;padding:.85rem;opacity:.36;transform:translateY(8px);transition:all .35s}.step-card.on{opacity:1;transform:translateY(0);border-color:var(--accent2);background:#fff;box-shadow:0 6px 18px rgba(23,34,51,.10)}.step-k{font-size:.66rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.step-title{font-size:.98rem;font-weight:900;margin:.2rem 0;color:var(--accent)}.step-body{font-size:.86rem;color:#334155}.calc{font-weight:900;color:var(--ink);display:block;margin-top:.35rem}.result-good{color:var(--good);font-weight:900}.result-bad{color:var(--bad);font-weight:900}.range{display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;margin-top:.4rem}.range-box{border:1px solid var(--line);border-radius:10px;padding:.55rem;text-align:center;background:#f8fafc}.range-mid{font-weight:900;color:var(--muted)}
+  .predict{border:2px dashed var(--accent);background:#fff7ed;border-radius:12px;padding:.85rem 1rem;margin:.9rem 0}.predict .pq{font-weight:800;font-size:.9rem;margin-bottom:.5rem}.pbtn{padding:.45rem 1rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:800;font-size:.84rem;cursor:pointer;margin:.2rem}.pbtn:hover{background:#fff7ed}.pfb{margin-top:.5rem;font-size:.83rem;font-weight:750;min-height:1rem}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.7rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn:disabled{opacity:.4}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  
+  .decision-lab{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:.9rem;margin:.9rem 0;display:grid;gap:.75rem}
+  .decision-lab h3{font-size:.95rem;color:var(--accent);line-height:1.25}
+  .lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+  .lab-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .lab-card strong{display:block;font-size:.84rem;margin-bottom:.2rem}
+  .lab-card span,.lab-output,.lab-note{color:#334155;font-size:.84rem;line-height:1.45}
+  .lab-controls{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center}
+  .lab-btn{border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;padding:.42rem .75rem;font-weight:850;font-size:.8rem;cursor:pointer}
+  .lab-btn.active,.lab-btn:hover{background:var(--accent);color:#fff}
+  .lab-output{border-left:5px solid var(--accent);background:#fff;border-radius:8px;padding:.65rem .8rem;font-weight:750}
+  .lab-output.hit{border-left-color:var(--good);background:#ecfdf5;color:#065f46}
+  .lab-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:.82rem}
+  .lab-table th,.lab-table td{border:1px solid var(--line);padding:.45rem .55rem;text-align:left}
+  .lab-table th{background:#eef6f8;color:var(--ink)}
+  .lab-table td:last-child{text-align:right;font-weight:850}
+  .lab-slider{width:min(420px,100%);accent-color:var(--accent)}
+  @media(max-width:760px){.lab-grid{grid-template-columns:1fr}.lab-table{font-size:.78rem}}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.model{grid-template-columns:1fr}.range{grid-template-columns:1fr}.range-mid{display:none}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="kicker">Chapter 8 · Capital Budgeting</div><h1>IRR: The Break-Even Discount Rate</h1><p class="subtitle">Internal rate of return is the discount rate that makes NPV equal zero. Compare that rate with the required return to accept or reject.</p></header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views"><button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">📈 Animation</button><button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button></div>
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Initial investment</span><span class="fact-val">$30,000</span></div>
+    <div class="fact"><span class="fact-label">Cash inflows</span><span class="fact-val">$10,000 x 4 years</span></div>
+    <div class="fact"><span class="fact-label">Required return</span><span class="fact-val">10%</span></div>
+    <div class="fact"><span class="fact-label">IRR</span><span class="fact-val">12.6%</span></div>
+  </div>
+  <div class="assumption">Assumption: cash flows occur at year-end and this intro example ignores taxes and salvage value.</div>
+
+<div class="status" id="status" role="status" aria-live="polite">Click “Next step” to see how the discount rate changes NPV.</div>
+  <div class="controls"><button class="btn btn-accent" id="nextBtn" onclick="nextStep()">Next step</button><button class="btn btn-gray" onclick="resetAll()">↺ Reset</button></div>
+
+<div class="model">    <div class="step-card" id="s0"><div class="step-k">Rate 8%</div><div class="step-title">NPV Positive</div><div class="step-body">At 8%, present value of inflows is about $33,121. <span class="calc result-good">NPV = +$3,121</span></div></div>
+    <div class="step-card" id="s1"><div class="step-k">Rate 12.6%</div><div class="step-title">NPV Near Zero</div><div class="step-body">At about 12.6%, PV of inflows is about $30,000. <span class="calc">NPV ≈ $0</span>. That rate is the IRR.</div></div>
+    <div class="step-card" id="s2"><div class="step-k">Decision</div><div class="step-title">Compare to Required Return</div><div class="step-body">If the required return is 10%, an IRR of 12.6% clears the hurdle. <span class="calc result-good">Accept</span>.</div></div></div>
+
+  <div class="decision-lab" aria-label="IRR discount rate lab">
+    <h3>Move The Discount Rate Until NPV Hits $0</h3>
+    <div class="lab-controls"><label for="irrRate"><strong>Discount rate:</strong> <span id="irrRateLabel">10.0%</span></label><input class="lab-slider" id="irrRate" type="range" min="6" max="18" step="0.5" value="10" oninput="updateIrrLab(this.value)"><button class="lab-btn" type="button" onclick="jumpToIrr()">🎯 Snap to IRR</button></div>
+    <div class="lab-output" id="irrOutput" role="status" aria-live="polite"></div>
+    <div class="lab-note">Drag near 12–13%, nudge with the arrow keys (0.5% per step), or press “Snap to IRR.” The IRR is the rate where NPV lands on $0 — about 12.6% here.</div>
+  </div>
+  <div class="predict"><div class="pq">Predict: if a project's IRR is 12.6% and the required return is 10%, what is the decision?</div><div><button class="pbtn" onclick="predict('accept')">Accept</button><button class="pbtn" onclick="predict('reject')">Reject</button><button class="pbtn" onclick="predict('ignore')">Ignore cash flows</button></div><div class="pfb" id="pfb" role="status" aria-live="polite"></div></div><div class="trap"><h3>Common Trap</h3><p>IRR is a percentage, but NPV is dollars of value. When projects conflict or differ in size, NPV usually gives the cleaner decision.</p></div>
+</section>
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none"><div class="practice">    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">IRR is the discount rate that makes:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Payback equal one year</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) NPV equal zero</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Sales equal variable cost</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Fixed cost equal contribution margin</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">If IRR is 12.6% and the required return is 10%, the project should be:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Accepted</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Rejected</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Ignored</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Accepted only if payback is zero</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">When two projects conflict, NPV is often preferred because it measures:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Dollars of value added</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) The accounting book value</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Units sold</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) The static budget variance</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div><div class="practice-foot"><button class="btn btn-accent" onclick="checkPractice()">Check My Work</button><div class="score" id="score" role="status" aria-live="polite"></div><button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button></div></div></section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>IRR gives the break-even return rate, but students still need to compare it with the required return.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>IRR:</strong> Discount rate where NPV equals zero.</li><li><strong>Required return:</strong> Minimum acceptable return.</li><li><strong>Hurdle rate:</strong> Another name for required return.</li><li><strong>NPV profile:</strong> How NPV changes as the discount rate changes.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>IRR is a percentage hurdle test; NPV still shows dollars of value.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>If IRR &gt; required return, accept. If IRR &lt; required return, reject. At IRR, NPV = $0.</p></details>
+</section>
+
+<div class="lo"><h2>Learning Objectives</h2><ul><li><strong>Define</strong> IRR as the discount rate where NPV equals zero.</li><li><strong>Compare</strong> IRR with the required return.</li><li><strong>Explain</strong> why NPV remains the stronger decision rule when projects conflict.</li></ul></div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 8 · IRR and NPV</footer>
+</div>
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){try{const file=location.pathname.split('/').pop()||document.title;const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));}catch(err){}}
+function predictGate(key,correct,fb,hint){window.__predictTries=window.__predictTries||{};if(correct){window.__predictTries[key]=0;return true;}const tries=(window.__predictTries[key]||0)+1;window.__predictTries[key]=tries;if(tries===1){fb.textContent=hint||'Hint: use the highlighted numbers, then try once more.';fb.style.color='#b45309';return false;}return true;}
+function resetPredictGates(){window.__predictTries={};}
+const $=id=>document.getElementById(id);
+let step=-1,predicted=false;
+function nextStep(){if(step>=2)return;step++;$('s'+step).classList.add('on');$('status').innerHTML=["At 8%, NPV is positive.","At about 12.6%, NPV is approximately zero: that is IRR.","IRR exceeds the 10% required return, so accept."][step];$('status').style.color=step===2?'#059669':'';$('nextBtn').textContent=step>=2?'Complete':'Next step';$('nextBtn').disabled=step>=2;}
+function predict(ans){if(predicted)return;const fb=$('pfb');const ok=ans==='accept';if(!predictGate('main',ok,fb,'Hint: IRR is compared with the required return or hurdle rate.'))return;predicted=true;if(ok){fb.textContent='Correct. IRR is above the required return, so the project clears the hurdle.';fb.style.color='#059669';}else{fb.textContent='Accept: 12.6% is higher than the 10% required return.';fb.style.color='#dc2626';}}
+function resetAll(){resetPredictGates();step=-1;predicted=false;document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('on'));$('pfb').textContent='';$('status').textContent='Click “Next step” to see how the discount rate changes NPV.';$('status').style.color='';$('nextBtn').textContent='Next step';$('nextBtn').disabled=false;}
+function npvAt(ratePct){const r=ratePct/100;return 10000*(1-Math.pow(1+r,-4))/r-30000;}
+function solveIrr(){let lo=0.01,hi=100;for(let i=0;i<200;i++){const mid=(lo+hi)/2;npvAt(mid)>0?lo=mid:hi=mid;}return (lo+hi)/2;}
+const IRR_RATE=solveIrr();const IRR_LABEL=IRR_RATE.toFixed(2)+'%';
+function updateIrrLab(rateValue){const rate=Number(rateValue);const npv=npvAt(rate);const atIrr=Math.abs(npv)<0.5;const shownNpv=atIrr?0:Math.round(npv);$('irrRateLabel').textContent=(atIrr?IRR_RATE:rate).toFixed(atIrr?2:1)+'%';const npvStr=shownNpv<0?'($'+Math.abs(shownNpv).toLocaleString()+')':'$'+shownNpv.toLocaleString();const out=$('irrOutput');let msg='PV of four $10,000 inflows ≈ $'+Math.round(npv+30000).toLocaleString()+', so NPV = '+npvStr+'. ';if(atIrr){out.classList.add('hit');msg+='🎯 NPV = $0 exactly — this is the IRR, precisely '+IRR_LABEL+' (the textbook rounds it to 12.6%). The inflows discount to exactly the $30,000 cost.';}else if(Math.abs(npv)<=30){out.classList.remove('hit');msg+='So close — NPV is nearly $0. The exact IRR is '+IRR_LABEL+', where NPV = $0. Press “Snap to IRR.”';}else{out.classList.remove('hit');msg+=npv>0?'NPV is positive, so this rate is BELOW the IRR — raise toward '+IRR_LABEL+'.':'NPV is negative, so this rate is ABOVE the IRR — lower toward '+IRR_LABEL+'.';}out.textContent=msg;}
+function jumpToIrr(){$('irrRate').value=IRR_RATE.toFixed(1);updateIrrLab(IRR_RATE);}
+updateIrrLab(10);
+const answers={"q1":"B","q2":"A","q3":"A"};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: IRR is the discount rate that makes NPV equal zero. At that rate, the present value of inflows equals the investment cost.",
+    "err": "Not quite. Solution: IRR is not the dollar profit. It is the rate where NPV equals zero."
+  },
+  "q2": {
+    "ok": "Correct. Solution: accept when IRR is greater than the required return. Here 12.6% exceeds 10%, so the project earns more than the minimum required rate.",
+    "err": "Not quite. Solution: compare IRR with the required return. If IRR is above the required return, the project is acceptable by the IRR rule."
+  },
+  "q3": {
+    "ok": "Correct. Solution: NPV is often preferred for mutually exclusive projects because it measures value added in dollars, which is closer to the goal of increasing firm value.",
+    "err": "Not quite. Solution: percentages can rank projects strangely when sizes differ. NPV reports the expected dollar value added."
+  }
+};
+function switchTab(t){const isAnim=t==='anim';$('tab-anim').classList.toggle('active',isAnim);$('tab-practice').classList.toggle('active',!isAnim);$('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');$('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');$('pane-anim').style.display=isAnim?'':'none';$('pane-practice').style.display=isAnim?'none':'';$('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');$('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');}
+function checkPractice(){let score=0;['q1','q2','q3'].forEach(q=>{const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));card.querySelectorAll('input').forEach(r=>r.disabled=true);if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}const val=sel.value,cor=answers[q];card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}else{fb.textContent=fbk[q].err;fb.className='q-fb err';}});if(score===3)markLessonComplete();const sb=$('score');sb.style.display='block';sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';sb.style.color=score===3?'#059669':'#b45309';$('retry').style.display=score<3?'':'none';}
+function retryPractice(){['q1','q2','q3'].forEach(q=>{const card=$(q);card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});$('fb'+q.slice(1)).textContent='';});$('score').style.display='none';$('retry').style.display='none';}
+</script>
+</body>
+</html>

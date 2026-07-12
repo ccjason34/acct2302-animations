@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Turn Up the Volume — How Fixed, Variable &amp; Mixed Costs Behave</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#c0392b; --accent2:#e57373;
+    --var:#dc2626; --fix:#2563eb; --mix:#d97706; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:700px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .dial{ text-align:center; margin-bottom:.6rem; }
+  .dial label{ font-size:.8rem; font-weight:800; color:var(--muted); }
+  .vol{ font-size:1.8rem; font-weight:900; color:var(--accent); }
+  input[type=range]{ width:min(560px,90%); accent-color:var(--accent); height:8px; }
+
+  .chartwrap{ background:#fcfdff; border:1px solid var(--line); border-radius:12px; padding:.5rem; }
+  svg{ width:100%; height:auto; display:block; }
+  .chart-data{ margin:.4rem 0 .8rem; border:1px solid var(--line); border-radius:10px; background:#f8fafc; padding:.45rem .65rem; }
+  .chart-data summary{ cursor:pointer; font-size:.78rem; font-weight:900; color:var(--muted); }
+  .chart-data table{ width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
+  .chart-data th,.chart-data td{ border-bottom:1px solid var(--line); padding:.3rem; text-align:right; }
+  .chart-data th:first-child,.chart-data td:first-child{ text-align:left; }
+
+  .legend{ display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin:.5rem 0; font-size:.8rem; font-weight:700; }
+  .legend span{ display:inline-flex; align-items:center; gap:.35rem; }
+  .sw{ width:16px; height:4px; border-radius:2px; display:inline-block; }
+
+  .readouts{ display:grid; grid-template-columns:repeat(4,1fr); gap:.55rem; margin-top:.5rem; }
+  .ro{ border:2px solid var(--line); border-radius:10px; padding:.55rem .3rem; text-align:center; background:#f9fbfd; }
+  .ro .rl{ font-size:.6rem; font-weight:900; text-transform:uppercase; color:var(--muted); } .ro .rv{ font-size:1.05rem; font-weight:900; }
+  .ro.var .rv{color:var(--var);} .ro.fix .rv{color:var(--fix);} .ro.mix .rv{color:var(--mix);}
+  .ro.perunit{ border-color:#fbbf24; background:#fffbeb; } .ro.perunit .rv{ color:#b45309; }
+
+  .predict{ border:2px dashed var(--accent); background:#fdf2f0; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.85rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#fde4e0; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .readouts{ grid-template-columns:repeat(2,1fr);} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 5 · Cost Behavior</div>
+  <h1>Turn Up the Volume 🎚️</h1>
+  <p class="subtitle">You run a taco truck. Drag the volume dial and watch how three kinds of cost behave: variable climbs, fixed stays flat, mixed does both. Keep an eye on the <strong>per-taco</strong> numbers.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🎚️ Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Activity driver</span><span class="fact-val">Tacos sold</span></div>
+    <div class="fact"><span class="fact-label">Variable cost</span><span class="fact-val">$3 per taco</span></div>
+    <div class="fact"><span class="fact-label">Fixed cost</span><span class="fact-val">$1,200</span></div>
+    <div class="fact"><span class="fact-label">Mixed cost</span><span class="fact-val">$400 + $2/taco</span></div>
+  </div>
+<div class="dial">
+    <label for="vol">Tacos sold this month</label><br>
+    <span class="vol" id="volLabel">300</span><br>
+    <input type="range" id="vol" min="0" max="600" step="20" value="300" oninput="update()" aria-label="Tacos sold this month">
+  </div>
+
+  <div class="legend">
+    <span><span class="sw" style="background:var(--var)"></span>Variable ($3/taco)</span>
+    <span><span class="sw" style="background:var(--fix)"></span>Fixed ($1,200)</span>
+    <span><span class="sw" style="background:var(--mix)"></span>Mixed ($400 + $2/taco)</span>
+  </div>
+
+  <div class="chartwrap">
+    <svg viewBox="0 0 520 300" role="img" aria-label="Cost behavior chart">
+      <!-- axes -->
+      <line x1="50" y1="260" x2="500" y2="260" stroke="#cbd5e1" stroke-width="1.5"/>
+      <line x1="50" y1="20"  x2="50"  y2="260" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="275" y="292" text-anchor="middle" font-size="11" fill="#5d6a7a" font-weight="700">Volume (tacos)</text>
+      <text x="16" y="140" text-anchor="middle" font-size="11" fill="#5d6a7a" font-weight="700" transform="rotate(-90 16 140)">Total cost ($)</text>
+      <!-- gridlines -->
+      <g id="grid"></g>
+      <!-- cost lines -->
+      <line id="lineFix" stroke="#2563eb" stroke-width="2.5"/>
+      <line id="lineVar" stroke="#dc2626" stroke-width="2.5"/>
+      <line id="lineMix" stroke="#d97706" stroke-width="2.5" stroke-dasharray="6 3"/>
+      <!-- marker -->
+      <line id="marker" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+      <circle id="dotVar" r="5" fill="#dc2626"/>
+      <circle id="dotFix" r="5" fill="#2563eb"/>
+      <circle id="dotMix" r="5" fill="#d97706"/>
+    </svg>
+  </div>
+  <details class="chart-data">
+    <summary>Data table</summary>
+    <table aria-label="Cost behavior chart data">
+      <thead><tr><th>Tacos sold</th><th>Variable cost</th><th>Fixed cost</th><th>Mixed cost</th><th>Fixed cost per taco</th></tr></thead>
+      <tbody>
+        <tr><td>100</td><td>$300</td><td>$1,200</td><td>$600</td><td>$12.00</td></tr>
+        <tr><td>300</td><td>$900</td><td>$1,200</td><td>$1,000</td><td>$4.00</td></tr>
+        <tr><td>600</td><td>$1,800</td><td>$1,200</td><td>$1,600</td><td>$2.00</td></tr>
+      </tbody>
+    </table>
+  </details>
+
+  <div class="readouts">
+    <div class="ro var"><div class="rl">Total Variable</div><div class="rv" id="ro-var">$900</div></div>
+    <div class="ro fix"><div class="rl">Total Fixed</div><div class="rv" id="ro-fix">$1,200</div></div>
+    <div class="ro mix"><div class="rl">Total Mixed</div><div class="rv" id="ro-mix">$1,000</div></div>
+    <div class="ro perunit"><div class="rl">Fixed cost / taco</div><div class="rv" id="ro-perunit">$4.00</div></div>
+  </div>
+
+  <div class="predict">
+    <div class="pq">🔮 Predict: as you sell MORE tacos, what happens to <strong>fixed cost per taco</strong>?</div>
+    <div>
+      <button class="pbtn" onclick="predict('down')">Goes down</button>
+      <button class="pbtn" onclick="predict('same')">Stays the same</button>
+      <button class="pbtn" onclick="predict('up')">Goes up</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p><strong>Total fixed cost</strong> stays flat, but fixed cost <strong>per unit</strong> falls as volume rises. <strong>Total variable cost</strong> rises with volume, but variable cost <strong>per unit</strong> stays constant.</p>
+  </div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: The Airline's Empty Seat</h3>
+    <p>Once a flight is scheduled, almost all of its cost &mdash; crew, fuel, the aircraft, the gate &mdash; is fixed and already committed. The extra (variable) cost of one more passenger is tiny, which is why an airline will sell an otherwise-empty seat at a deep discount.</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>Large fixed cost</strong><p>The flight costs nearly the same whether 100 or 150 people board.</p></div>
+      <div class="case-card"><strong>Tiny variable cost</strong><p>One more passenger adds only a little fuel, a snack, and some paperwork.</p></div>
+      <div class="case-card"><strong>Cost per seat falls</strong><p>Spreading the fixed cost over more passengers lowers the cost per seat.</p></div>
+    </div>
+    <p><strong>Cost-behavior question:</strong> why can an airline profitably sell a last-minute seat for far less than a seat's average cost?</p>
+    <p class="case-source">Source for discussion: <a href="https://www.globalair.com/articles/the-hidden-economics-of-empty-airline-seats/12308" target="_blank" rel="noopener">GlobalAir, "The Hidden Economics of Empty Airline Seats"</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">As production volume increases, total fixed cost:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Increases</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Stays the same</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Decreases</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Becomes variable</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Variable cost is $3 per taco. As volume rises, variable cost <em>per taco</em>:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Stays $3</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Rises above $3</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Falls below $3</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Becomes fixed</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">A cost that has both a flat base amount and a per-unit amount is called a:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Fixed cost</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Variable cost</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Mixed cost</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Sunk cost</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Cost behavior helps predict what total cost will do when activity rises or falls.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Variable cost:</strong> Changes in total with activity.</li><li><strong>Fixed cost:</strong> Stays the same in total within the relevant range.</li><li><strong>Mixed cost:</strong> Has both fixed and variable parts.</li><li><strong>Relevant range:</strong> The activity band where the cost pattern holds.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Watch total cost and per-unit cost separately. They do not always move the same way.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Total cost = fixed cost + (variable cost per unit x units). Variable cost per unit stays constant; fixed cost per unit changes as volume changes.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Distinguish</strong> variable, fixed, and mixed costs by how they react to volume.</li>
+    <li><strong>Predict</strong> what happens to total cost vs. per-unit cost as activity changes.</li>
+    <li><strong>Read</strong> a cost-behavior graph.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 5 · Cost behavior patterns</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const VR=3, FIX=1200, MB=400, MR=2;      // variable rate, fixed, mixed base, mixed rate
+const MAXU=600, MAXC=2000;
+const X0=50,X1=500,Y0=260,Y1=20;
+const xs=u=>X0+(u/MAXU)*(X1-X0);
+const ys=c=>Y0-(c/MAXC)*(Y0-Y1);
+function fmt(n){ return '$'+Math.round(n).toLocaleString(); }
+
+// static lines + grid
+(function init(){
+  // gridlines for y
+  let g='';
+  for(let c=0;c<=2000;c+=500){ g+=`<line x1="50" y1="${ys(c)}" x2="500" y2="${ys(c)}" stroke="#eef2f6" stroke-width="1"/><text x="44" y="${ys(c)+4}" text-anchor="end" font-size="9" fill="#9aa7b6">${c}</text>`; }
+  for(let u=0;u<=600;u+=100){ g+=`<text x="${xs(u)}" y="274" text-anchor="middle" font-size="9" fill="#9aa7b6">${u}</text>`; }
+  $('grid').innerHTML=g;
+  set('lineFix', xs(0),ys(FIX),xs(MAXU),ys(FIX));
+  set('lineVar', xs(0),ys(0),xs(MAXU),ys(VR*MAXU));
+  set('lineMix', xs(0),ys(MB),xs(MAXU),ys(MB+MR*MAXU));
+})();
+function set(id,x1,y1,x2,y2){ const e=$(id); e.setAttribute('x1',x1); e.setAttribute('y1',y1); e.setAttribute('x2',x2); e.setAttribute('y2',y2); }
+
+function update(){
+  const u=+$('vol').value;
+  $('volLabel').textContent=u;
+  const tv=VR*u, tf=FIX, tm=MB+MR*u;
+  $('ro-var').textContent=fmt(tv); $('ro-fix').textContent=fmt(tf); $('ro-mix').textContent=fmt(tm);
+  $('ro-perunit').textContent = u>0 ? '$'+(FIX/u).toFixed(2) : '∞';
+  // marker + dots
+  set('marker', xs(u),Y0,xs(u),Y1);
+  $('dotVar').setAttribute('cx',xs(u)); $('dotVar').setAttribute('cy',ys(tv));
+  $('dotFix').setAttribute('cx',xs(u)); $('dotFix').setAttribute('cy',ys(tf));
+  $('dotMix').setAttribute('cx',xs(u)); $('dotMix').setAttribute('cy',ys(tm));
+}
+let predicted=false;
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='down', fb)) return; predicted=true; if(ans==='down'){ fb.textContent='✅ Correct! The same $1,200 is spread over more tacos, so fixed cost per taco falls. Slide right and watch the orange box drop.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ It goes DOWN — the fixed $1,200 is divided among more tacos as volume rises. Try sliding the dial.'; fb.style.color='#dc2626'; }
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'A',q3:'C'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: total fixed cost stays the same within the relevant range even when volume changes. The fixed cost per unit changes, but the total fixed cost does not.",
+    "err": "Not quite. Solution: fixed means total fixed cost does not change with activity within the relevant range. Only fixed cost per unit falls as volume increases."
+  },
+  "q2": {
+    "ok": "Correct. Solution: variable cost per unit stays constant at $3 per taco. Total variable cost rises with volume, but the per-unit amount remains the same.",
+    "err": "Not quite. Solution: variable costs change in total as activity changes, but the variable cost per unit remains constant in the relevant range."
+  },
+  "q3": {
+    "ok": "Correct. Solution: a mixed cost has both a fixed component and a variable component, such as a base charge plus a per-unit charge.",
+    "err": "Not quite. Solution: when a cost has a flat base amount plus an amount that changes with activity, it is a mixed cost."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; const s=$('vol'); if(e.key==='ArrowRight'){ s.value=Math.min(600,+s.value+20); update(); } if(e.key==='ArrowLeft'){ s.value=Math.max(0,+s.value-20); update(); } });
+update();
+</script>
+</body>
+</html>

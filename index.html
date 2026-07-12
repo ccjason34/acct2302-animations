@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Managerial Accounting Animation Hub</title>
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d8e1ea; --panel:#fff;
+    --teal:#0f766e; --blue:#2f80ed; --rose:#be185d; --amber:#b87514;
+    --shadow:0 14px 34px rgba(23,34,51,.10);
+  }
+  body{ min-height:100vh; font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif; background:linear-gradient(180deg,#f9fbfd 0%,#eef3f7 100%); color:var(--ink); }
+  a{ color:inherit; }
+  .app{ width:min(1180px,100%); margin:0 auto; padding:24px 18px 44px; }
+
+  header{ display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,400px); gap:18px; align-items:end; margin-bottom:18px; }
+  .kicker{ color:var(--teal); font-size:.78rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+  h1{ font-size:clamp(1.65rem,4vw,2.5rem); line-height:1.05; }
+  .header-note{ color:var(--muted); font-size:.94rem; line-height:1.5; }
+
+  .summary{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+  .summary-item{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; box-shadow:var(--shadow); }
+  .summary-label{ color:var(--muted); font-size:.7rem; font-weight:900; letter-spacing:.07em; text-transform:uppercase; margin-bottom:3px; }
+  .summary-value{ font-size:1.05rem; font-weight:900; }
+
+  .section-title{ display:flex; justify-content:space-between; gap:12px; align-items:center; margin:24px 0 10px; }
+  h2{ font-size:1.12rem; line-height:1.2; }
+  .small-note{ color:var(--muted); font-size:.84rem; font-weight:700; }
+
+  .week-grid{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+  .week-card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); padding:12px; display:grid; gap:6px; align-content:start; }
+  .week-name{ color:var(--blue); font-size:.72rem; font-weight:900; letter-spacing:.07em; text-transform:uppercase; }
+  .week-card strong{ font-size:.92rem; line-height:1.25; }
+  .week-card span{ color:var(--muted); font-size:.8rem; line-height:1.35; }
+
+  .unit{ margin-top:26px; }
+  .unit-head{ border-top:2px solid var(--line); padding-top:14px; margin-bottom:12px; }
+  .unit-name{ color:var(--teal); font-size:.74rem; font-weight:900; letter-spacing:.07em; text-transform:uppercase; }
+  .unit-head h3{ font-size:1.05rem; }
+  .chapter-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .chapter-card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); display:grid; grid-template-columns:58px minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px; }
+  .chapter-number{ width:52px; height:52px; border-radius:8px; display:grid; place-items:center; color:#fff; font-weight:900; font-size:.82rem; text-align:center; line-height:1.1; }
+  .chapter-copy{ display:grid; gap:3px; min-width:0; }
+  .chapter-copy h4{ font-size:.96rem; line-height:1.2; }
+  .chapter-copy p{ color:var(--muted); font-size:.82rem; line-height:1.35; }
+  .time-pill{ justify-self:start; margin-top:2px; border:1px solid rgba(15,118,110,.25); background:rgba(15,118,110,.08); color:var(--teal); border-radius:999px; padding:3px 8px; font-size:.7rem; font-weight:900; }
+  .open-link{ display:inline-grid; place-items:center; min-height:40px; padding:0 14px; border-radius:8px; background:var(--ink); color:#fff; font-size:.82rem; font-weight:900; text-decoration:none; white-space:nowrap; }
+  .open-link:hover{ background:#0b1422; }
+
+  .student-path{ background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); padding:14px; margin-bottom:18px; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr); gap:16px; align-items:center; }
+  .path-copy{ display:grid; gap:7px; }
+  .path-copy h2{ font-size:1.08rem; line-height:1.25; }
+  .path-copy p,.path-list li{ color:var(--muted); font-size:.88rem; line-height:1.4; }
+  .path-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .action-link,.ghost-link{ min-height:38px; display:inline-grid; place-items:center; border-radius:8px; padding:0 13px; font-size:.8rem; font-weight:900; text-decoration:none; }
+  .action-link{ background:var(--teal); color:#fff; }
+  .action-link:hover{ background:#115e59; }
+  .ghost-link{ border:1px solid var(--line); background:#f8fafc; color:var(--ink); }
+  .ghost-link:hover{ border-color:#aab8c7; background:#eef6f4; }
+  .path-list{ margin-left:18px; display:grid; gap:5px; }
+  .continue-note{ color:var(--muted); font-size:.82rem; font-weight:700; }
+  .done-pill{ display:none; justify-self:start; border:1px solid rgba(5,150,105,.25); background:#ecfdf5; color:#047857; border-radius:999px; padding:3px 8px; font-size:.68rem; font-weight:900; }
+  .chapter-card.done{ border-color:rgba(5,150,105,.35); }
+  .chapter-card.done .done-pill{ display:inline-block; }
+  .ideas-link{ display:inline-block; margin-top:18px; color:var(--teal); font-weight:800; font-size:.9rem; text-decoration:none; }
+  .ideas-link:hover{ text-decoration:underline; }
+
+  @media(max-width:920px){ header,.chapter-grid,.student-path{ grid-template-columns:1fr; } .summary,.week-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media(max-width:640px){ .app{ padding:18px 10px 28px; } .summary,.week-grid{ grid-template-columns:1fr; } .chapter-card{ grid-template-columns:46px minmax(0,1fr); } .open-link{ grid-column:1 / -1; width:100%; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <div class="kicker">Principles of Managerial Accounting · ACCT 2302</div>
+      <h1>Managerial Accounting Animation Hub</h1>
+    </div>
+    <p class="header-note">Twenty-seven short animations with one moving model, a prediction checkpoint, and 3 Practice questions. Use them before or after lecture.</p>
+  </header>
+
+  <section class="summary" aria-label="Course summary">
+    <div class="summary-item"><div class="summary-label">Animations</div><div class="summary-value">27 interactive</div></div>
+    <div class="summary-item"><div class="summary-label">Coverage</div><div class="summary-value">Chapters 1–12</div></div>
+    <div class="summary-item"><div class="summary-label">Each runs</div><div class="summary-value">~6–10 min</div></div>
+    <div class="summary-item"><div class="summary-label">Best used</div><div class="summary-value">Before or after lecture</div></div>
+  </section>
+
+  <section class="student-path" aria-label="Recommended student path">
+    <div class="path-copy">
+      <div class="summary-label">Start Or Continue</div>
+      <h2>Use the core path when you are not sure where to begin.</h2>
+      <p id="continueNote" class="continue-note">Start with Ch 1, then move through one unit at a time.</p>
+      <div class="path-actions">
+        <a class="action-link" id="continueLink" href="Ch01_CostFlowRiver.html">Start with Ch 1</a>
+        <a class="ghost-link" href="student-reference.html">Open terms &amp; formulas</a>
+      </div>
+    </div>
+    <div>
+      <div class="summary-label">Core Route</div>
+      <ol class="path-list">
+        <li>Foundations: Ch 1-4 cost flow, job costing, ABC, and process-costing flow.</li>
+        <li>Decision tools: Ch 5-8 cost behavior, CVP, relevant cost, capital budgeting.</li>
+        <li>Control: Ch 9-12 budgets, variances, performance, and cash flow.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="section-title"><h2>Suggested 15-Week Route</h2><p class="small-note">One unit at a time, foundations first.</p></div>
+  <section class="week-grid" aria-label="Suggested route">
+    <div class="week-card"><div class="week-name">Weeks 1–2</div><strong>Ch 1–2</strong><span>Cost concepts, cost flows, job costing.</span></div>
+    <div class="week-card"><div class="week-name">Weeks 3–4</div><strong>Ch 3–4</strong><span>Activity-based costing, process costing.</span></div>
+    <div class="week-card"><div class="week-name">Weeks 5–6</div><strong>Ch 5–6</strong><span>Cost behavior, CVP &amp; break-even.</span></div>
+    <div class="week-card"><div class="week-name">Weeks 7–9</div><strong>Ch 7–8</strong><span>Relevant costs, capital budgeting.</span></div>
+    <div class="week-card"><div class="week-name">Weeks 10–15</div><strong>Ch 9–12</strong><span>Budgets, variances, performance, and cash flow.</span></div>
+  </section>
+
+  <div id="units"></div>
+
+  <a class="ideas-link" href="animation-ideas.html">For instructors: planning catalog with built + stretch ideas -></a>
+</main>
+
+<script>
+const units = [
+  { name:"Unit 1", title:"Cost Concepts &amp; Product Costing (Ch 1–4)", color:"#0f766e", items:[
+    { ch:"Ch 1", title:"The Cost Flow River", desc:"How costs move Raw Materials → WIP → Finished Goods → COGS.", time:"8–10 min", file:"Ch01_CostFlowRiver.html" },
+    { ch:"Ch 1", title:"Product or Period?", desc:"Sort costs; compute prime and conversion cost.", time:"7–9 min", file:"Ch01_ProductVsPeriodSorter.html" },
+    { ch:"Ch 1", title:"Three Cost Structures", desc:"Inventory accounts by business type + the Schedule of COGM.", time:"8–10 min", file:"Ch01_ManufacturerMerchandiserService.html" },
+    { ch:"Ch 2", title:"What Did This Custom Order Cost?", desc:"Build a job cost sheet from source documents.", time:"8–10 min", file:"Ch02_JobCostSheet.html" },
+    { ch:"Ch 2", title:"Estimate, Apply, True-Up", desc:"Predetermined overhead rate &amp; over/under-applied.", time:"7–9 min", file:"Ch02_PredeterminedOverheadRate.html" },
+    { ch:"Ch 2", title:"One Rate for the Whole Factory?", desc:"Plantwide vs. departmental overhead rates.", time:"7–9 min", file:"Ch02_PlantwideVsDepartmental.html" },
+    { ch:"Ch 3", title:"One Big Rate vs. Many Buckets", desc:"ABC vs. traditional overhead allocation.", time:"8–10 min", file:"Ch03_ABCvsTraditional.html" },
+    { ch:"Ch 3", title:"ABC Isn't Just for Factories", desc:"Activity-based costing at a bank — service-business overhead.", time:"8–10 min", file:"Ch03_ABCServiceBusiness.html" },
+  ]},
+  { name:"Unit 2", title:"Cost Behavior, CVP &amp; Decisions (Ch 5–8)", color:"#c0392b", items:[
+    { ch:"Ch 5", title:"Turn Up the Volume", desc:"How fixed, variable &amp; mixed costs behave with volume.", time:"6–8 min", file:"Ch05_CostBehaviorDial.html" },
+    { ch:"Ch 5", title:"Two Points, One Cost Formula", desc:"The high-low method, step by step.", time:"7–9 min", file:"Ch05_HighLowMethod.html" },
+    { ch:"Ch 6", title:"Where Do You Stop Losing Money?", desc:"Break-even on a live CVP graph.", time:"7–9 min", file:"Ch06_BreakEven.html" },
+    { ch:"Ch 6", title:"Every Sale Chips In", desc:"Contribution margin, target profit, margin of safety.", time:"7–9 min", file:"Ch06_ContributionMargin.html" },
+    { ch:"Ch 7", title:"Does It Change With the Decision?", desc:"Relevant-cost filter for make-or-buy.", time:"8–10 min", file:"Ch07_RelevantCostFilter.html" },
+    { ch:"Ch 7", title:"Special Order: Idle or Full?", desc:"Special-order decisions with opportunity cost at capacity.", time:"7–9 min", file:"Ch07_SpecialOrderCapacity.html" },
+    { ch:"Ch 8", title:"What Is a Future Dollar Worth Today?", desc:"NPV vs. payback with discounting.", time:"8–10 min", file:"Ch08_NPV.html" },
+    { ch:"Ch 8", title:"IRR: The Break-Even Discount Rate", desc:"Internal rate of return and the required-return hurdle.", time:"7–9 min", file:"Ch08_IRR.html" },
+  ]},
+  { name:"Unit 3", title:"Planning, Control &amp; Performance (Ch 9–12)", color:"#6d28d9", items:[
+    { ch:"Ch 9", title:"It All Starts With Sales", desc:"How the master budget links together.", time:"7–9 min", file:"Ch09_MasterBudget.html" },
+    { ch:"Ch 9", title:"When Cash Runs Short", desc:"Cash budget collections, payments, and borrowing.", time:"7–9 min", file:"Ch09_CashBudget.html" },
+    { ch:"Ch 10", title:"Price or Quantity?", desc:"Split a variance with the three-column framework.", time:"8–10 min", file:"Ch10_VarianceColumns.html" },
+    { ch:"Ch 10", title:"Favorable Isn't Always Good", desc:"Interpret variances and their causes.", time:"6–8 min", file:"Ch10_FavorableUnfavorable.html" },
+    { ch:"Ch 10", title:"Overhead Variances", desc:"Variable and fixed overhead variance signals.", time:"8–10 min", file:"Ch10_OverheadVariances.html" },
+    { ch:"Ch 11", title:"Two Levers Behind ROI", desc:"Margin × turnover; two ROI levers.", time:"6–8 min", file:"Ch11_ROIDuPont.html" },
+    { ch:"Ch 11", title:"Residual Income", desc:"Dollars earned above the required return on assets.", time:"7–9 min", file:"Ch11_ResidualIncome.html" },
+    { ch:"Ch 11", title:"Segment Margin", desc:"Traceable vs. common fixed costs in segment reports.", time:"7–9 min", file:"Ch11_SegmentMargin.html" },
+    { ch:"Ch 12", title:"Three Buckets of Cash", desc:"Classify operating, investing, and financing cash flows.", time:"7–9 min", file:"Ch12_ThreeBucketsOfCash.html" },
+    { ch:"Ch 12", title:"Indirect Method: Operating Cash", desc:"Convert net income to cash from operations.", time:"8–10 min", file:"Ch12_IndirectOperatingCash.html" },
+    { ch:"Ch 12", title:"Direct vs. Indirect Cash Flow", desc:"Two methods, same operating cash flow.", time:"8–10 min", file:"Ch12_CashFlowBuckets.html" },
+  ]},
+];
+
+const wrap = document.getElementById('units');
+units.forEach(u => {
+  const sec = document.createElement('section'); sec.className = 'unit';
+  const cards = u.items.map(it => `
+    <article class="chapter-card" data-file="${it.file}">
+      <div class="chapter-number" style="background:${u.color}">${it.ch}</div>
+      <div class="chapter-copy">
+        <h4>${it.title}</h4>
+        <p>${it.desc}</p>
+        <span class="time-pill">${it.time}</span><span class="done-pill">Done</span>
+      </div>
+      <a class="open-link" href="${it.file}">Open</a>
+    </article>`).join('');
+  sec.innerHTML = `
+    <div class="unit-head"><div class="unit-name">${u.name}</div><h3>${u.title}</h3></div>
+    <div class="chapter-grid">${cards}</div>`;
+  wrap.appendChild(sec);
+});
+
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+const allItems = units.flatMap(u => u.items);
+const continueLink = document.getElementById('continueLink');
+const continueNote = document.getElementById('continueNote');
+function readProgress(){
+  try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}'); }
+  catch (err) { return {}; }
+}
+function renderProgress(){
+  const progress = readProgress();
+  const complete = allItems.filter(it => progress[it.file]?.completed).length;
+  const next = allItems.find(it => !progress[it.file]?.completed) || allItems[0];
+  if (continueLink && next) {
+    continueLink.href = next.file;
+    continueLink.textContent = complete === 0 ? 'Start with Ch 1' : complete === allItems.length ? 'Review from Ch 1' : 'Continue: ' + next.ch;
+  }
+  if (continueNote && next) {
+    continueNote.textContent = complete === allItems.length
+      ? 'All animations are marked complete. Review any chapter before an exam.'
+      : next.ch + ': ' + next.title + ' is the next unfinished animation in the course path.';
+  }
+  document.querySelectorAll('.chapter-card[data-file]').forEach(card => {
+    const file = card.getAttribute('data-file');
+    card.classList.toggle('done', !!progress[file]?.completed);
+  });
+}
+window.addEventListener('storage', renderProgress);
+renderProgress();
+</script>
+</body>
+</html>

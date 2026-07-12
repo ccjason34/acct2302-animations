@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Price or Quantity? Splitting a Cost Variance</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#3730a3; --accent2:#818cf8; --fav:#16a34a; --unfav:#dc2626; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:710px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+
+  .plain-map{display:grid;gap:.65rem;margin:.25rem 0 .85rem}
+  .big-idea{background:#f5f3ff;border:1px solid #c4b5fd;border-left:5px solid var(--accent);border-radius:10px;padding:.65rem .8rem;text-align:center;color:#312e81;font-size:.9rem;font-weight:850}
+  .terms{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.45rem}
+  .term{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.48rem .55rem;text-align:center}
+  .term strong{display:block;color:var(--accent);font-size:.92rem;font-weight:950;line-height:1}
+  .term span{display:block;color:#475569;font-size:.74rem;font-weight:800;line-height:1.25;margin-top:.15rem}
+  .step-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem;margin:.7rem 0}
+  .step-hint{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.6rem .75rem}
+  .step-hint strong{display:block;font-size:.78rem;text-transform:uppercase;color:var(--accent);font-weight:950;margin-bottom:.18rem}
+  .step-hint span{display:block;font-size:.82rem;color:#334155;font-weight:750;line-height:1.35}
+  .cols{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:.5rem; align-items:stretch; }
+  .col{ border:2px solid var(--line); border-radius:12px; padding:.8rem .65rem; text-align:center; background:#fafbff; transition:all .4s; }
+  .col.bridge-col{background:#fffaf0}
+  .col.on{ border-color:var(--accent2); box-shadow:0 4px 14px rgba(55,48,163,.12); }
+  .col.bridge-col.on{border-color:#fbbf24;box-shadow:0 4px 14px rgba(180,83,9,.14)}
+  .col .cl{ font-size:.76rem; font-weight:950; text-transform:uppercase; color:var(--ink); letter-spacing:0; line-height:1.2; }
+  .col .plain{font-size:.74rem;color:#475569;font-weight:800;margin-top:.18rem;min-height:2rem;line-height:1.3}
+  .col .cf{ font-size:.72rem; color:#7c8aa0; margin:.25rem 0; min-height:1.15rem; }
+  .col .cv{ font-size:1.25rem; font-weight:900; color:var(--accent); }
+
+  .bridges{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.6rem; }
+  .bridge{ border:2px dashed var(--line); border-radius:10px; padding:.6rem; text-align:center; opacity:.4; transition:all .4s; }
+  .bridge.on{ opacity:1; }
+  .bridge .bl{ font-size:.72rem; font-weight:800; text-transform:uppercase; color:var(--muted); }
+  .bridge .bv{ font-size:1.25rem; font-weight:900; margin-top:.2rem; }
+  .bridge .why{font-size:.76rem;color:#475569;font-weight:750;margin-top:.2rem;line-height:1.3}
+  .bridge.fav{ border-color:#86efac; background:#f0fdf4; } .bridge.fav .bv{ color:var(--fav);} .bridge.fav .bl{ color:#15803d; }
+  .bridge.unfav{ border-color:#fca5a5; background:#fef2f2; } .bridge.unfav .bv{ color:var(--unfav);} .bridge.unfav .bl{ color:#b91c1c; }
+
+  .total{ margin-top:.7rem; text-align:center; font-size:1.05rem; font-weight:900; padding:.6rem; border-radius:10px; display:none; }
+  .total.show{ display:block; animation:pop .4s ease; } @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  .total.unfav{ background:#fef2f2; color:#b91c1c; border:2px solid #fca5a5; }
+
+  .predict{ border:2px dashed var(--accent); background:#eef2ff; border-radius:12px; padding:.85rem 1rem; margin:.8rem 0; display:none; }
+  .predict.show{ display:block; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.82rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#e0e7ff; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .status{ min-height:26px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.55rem 1.1rem; border:none; border-radius:9px; font-weight:800; font-size:.82rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:760px){ .terms{grid-template-columns:repeat(2,minmax(0,1fr))}.step-map{grid-template-columns:1fr} }
+  @media(max-width:640px){ .cols{ grid-template-columns:1fr; } .bridges{ grid-template-columns:1fr; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 10 · Variance Analysis</div>
+  <h1>Price or Quantity? 🧮</h1>
+  <p class="subtitle">Use three columns to split total variance into price and quantity pieces.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🧮 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Standard input</span><span class="fact-val">2 lbs/loaf @ $1.50</span></div>
+    <div class="fact"><span class="fact-label">Standard allowed</span><span class="fact-val">1,000 loaves = 2,000 lbs</span></div>
+    <div class="fact"><span class="fact-label">Actual input</span><span class="fact-val">2,200 lbs @ $1.40</span></div>
+    <div class="fact"><span class="fact-label">Assumption</span><span class="fact-val">All purchased = used</span></div>
+  </div>
+  <div class="plain-map" aria-label="Variance column guide">
+    <div class="big-idea">Compare actual cost to standard cost by changing one thing at a time: price first, then quantity.</div>
+    <div class="terms">
+      <div class="term"><strong>AQ</strong><span>actual quantity used</span></div>
+      <div class="term"><strong>AP</strong><span>actual price paid</span></div>
+      <div class="term"><strong>SP</strong><span>standard price</span></div>
+      <div class="term"><strong>SQ</strong><span>standard quantity allowed</span></div>
+    </div>
+  </div>
+
+<div class="status" id="status" role="status" aria-live="polite">Start with three columns: actual cost, a bridge column, and standard cost.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="b0" onclick="goCols()">1 · Build the 3 Columns</button>
+    <button class="btn btn-accent" id="b1" onclick="goPrice()" disabled>2 · Price Variance</button>
+    <button class="btn btn-accent" id="b2" onclick="goQty()" disabled>3 · Quantity Variance</button>
+    <button class="btn btn-accent" id="b3" onclick="goTotal()" disabled>4 · Total</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+  <div class="step-map">
+    <div class="step-hint"><strong>Price check</strong><span>Compare actual-cost column to bridge column. Keep 2,200 actual lbs; change only price from $1.40 to $1.50.</span></div>
+    <div class="step-hint"><strong>Quantity check</strong><span>Compare bridge column to standard-cost column. Keep the $1.50 standard price; change pounds from 2,200 to 2,000.</span></div>
+  </div>
+
+<div class="cols">
+    <div class="col" id="c1"><div class="cl">What Actually Happened</div><div class="plain">actual pounds at actual price</div><div class="cf">AQ × AP = 2,200 lbs × $1.40</div><div class="cv" id="v1">—</div></div>
+    <div class="col bridge-col" id="c2"><div class="cl">Bridge Column</div><div class="plain">actual pounds at standard price</div><div class="cf">AQ × SP = 2,200 lbs × $1.50</div><div class="cv" id="v2">—</div></div>
+    <div class="col" id="c3"><div class="cl">What Should Have Happened</div><div class="plain">standard pounds at standard price</div><div class="cf">SQ × SP = 2,000 lbs × $1.50</div><div class="cv" id="v3">—</div></div>
+  </div>
+
+  <div class="bridges">
+    <div class="bridge" id="bPrice"><div class="bl">Price Variance</div><div class="why">Same actual pounds, different price</div><div class="bv" id="vPrice">—</div></div>
+    <div class="bridge" id="bQty"><div class="bl">Quantity Variance</div><div class="why">Same standard price, different pounds</div><div class="bv" id="vQty">—</div></div>
+  </div>
+
+  <div class="total" id="total">$300 U − $220 F = $80 U overall</div>
+
+  <div class="predict" id="predictP">
+    <div class="pq">🔮 Predict: they paid <strong>$1.40/lb</strong> instead of the standard $1.50. The PRICE variance is…</div>
+    <div>
+      <button class="pbtn" onclick="predictP('fav')">Favorable</button>
+      <button class="pbtn" onclick="predictP('unfav')">Unfavorable</button>
+    </div>
+    <div class="pfb" id="pfbP" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="predict" id="predictQ">
+    <div class="pq">🔮 Predict: they used <strong>2,200 lbs</strong> instead of the standard 2,000. The QUANTITY variance is…</div>
+    <div>
+      <button class="pbtn" onclick="predictQ('fav')">Favorable</button>
+      <button class="pbtn" onclick="predictQ('unfav')">Unfavorable</button>
+    </div>
+    <div class="pfb" id="pfbQ" role="status" aria-live="polite"></div>
+  </div><div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p><strong>Favorable</strong> means actual cost was <em>lower</em> than standard (good for cost), <strong>unfavorable</strong> means higher. The middle column is the key: it keeps actual pounds but switches to standard price, so the first gap is only price and the second gap is only quantity.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">To isolate the price variance, which item should stay the same in both columns?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Actual quantity</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Standard quantity</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Actual price</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Total sales</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">A favorable variance means actual cost was:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Higher than standard</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Lower than standard</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Exactly standard</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Equal to revenue</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Using more material than standard (2,200 vs 2,000 lbs) produces a quantity variance that is:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Favorable</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Unfavorable</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Zero</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Impossible to tell</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Variance columns separate price/rate problems from quantity/efficiency problems.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Standard cost:</strong> Expected cost for expected input.</li><li><strong>Actual cost:</strong> What actually happened.</li><li><strong>Price variance:</strong> Difference caused by paying a different price.</li><li><strong>Quantity variance:</strong> Difference caused by using a different amount.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Use actual quantity for price variance and standard price for quantity variance.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Price variance = (AP - SP) x AQ. Quantity variance = (AQ - SQ) x SP.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Build</strong> the three columns: AQ×AP, AQ×SP, and SQ×SP, assuming pounds purchased were used.</li>
+    <li><strong>Compute</strong> the price variance and the quantity variance.</li>
+    <li><strong>Label</strong> each variance favorable or unfavorable.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 10 · Standard costs &amp; variances</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const C1=2200*1.40, C2=2200*1.50, C3=2000*1.50; // 3080, 3300, 3000
+let step=0, pP=false, pQ=false;
+function goCols(){
+  if(step>0)return; step=1;
+  ['c1','c2','c3'].forEach(id=>$(id).classList.add('on'));
+  $('v1').textContent='$'+C1.toLocaleString(); $('v2').textContent='$'+C2.toLocaleString(); $('v3').textContent='$'+C3.toLocaleString();
+  $('status').innerHTML='Columns built. The bridge column lets us compare one change at a time.';
+  $('b0').disabled=true; $('b1').disabled=false; $('predictP').classList.add('show');
+}
+function goPrice(){
+  if(step!==1)return; step=2;
+  const pv=C1-C2; // -220 favorable
+  $('bPrice').classList.add('on','fav');
+  $('vPrice').textContent='$'+Math.abs(pv).toLocaleString()+' F';
+  $('status').innerHTML='Price variance: same 2,200 lbs, but price changes from $1.40 to $1.50. Paying less saved <strong style="color:var(--fav)">$220 F</strong>.';
+  $('b1').disabled=true; $('b2').disabled=false; $('predictQ').classList.add('show');
+}
+function goQty(){
+  if(step!==2)return; step=3;
+  const qv=C2-C3; // +300 unfavorable
+  $('bQty').classList.add('on','unfav');
+  $('vQty').textContent='$'+Math.abs(qv).toLocaleString()+' U';
+  $('status').innerHTML='Quantity variance: same $1.50 standard price, but pounds change from 2,200 to 2,000. Extra flour cost <strong style="color:var(--unfav)">$300 U</strong>.';
+  $('b2').disabled=true; $('b3').disabled=false;
+}
+function goTotal(){
+  if(step!==3)return; step=4;
+  $('total').classList.add('show','unfav');
+  $('status').innerHTML='Net result: <strong>$300 U − $220 F = $80 U</strong>. The cheaper price helped, but the extra flour more than offset it.';
+  $('status').style.color='#b91c1c'; $('b3').disabled=true;
+}
+function predictP(ans){ if(pP)return; const fb=$('pfbP'); if(!predictGate('pfbP', ans==='fav', fb)) return; pP=true; if(ans==='fav'){ fb.textContent='✅ Favorable — they paid $1.40 vs the $1.50 standard, so cost is lower.'; fb.style.color='#059669'; } else { fb.textContent='❌ It\'s favorable — paying less than standard ($1.40 < $1.50) is good for cost.'; fb.style.color='#dc2626'; } }
+function predictQ(ans){ if(pQ)return; const fb=$('pfbQ'); if(!predictGate('pfbQ', ans==='unfav', fb)) return; pQ=true; if(ans==='unfav'){ fb.textContent='✅ Unfavorable — they used 2,200 lbs vs the 2,000 standard, so cost is higher.'; fb.style.color='#059669'; } else { fb.textContent='❌ It\'s unfavorable — using more than standard (2,200 > 2,000) raises cost.'; fb.style.color='#dc2626'; } }
+function resetAll(){ resetPredictGates();
+  step=0; pP=false; pQ=false;
+  ['c1','c2','c3'].forEach(id=>$(id).classList.remove('on')); ['v1','v2','v3'].forEach(id=>$(id).textContent='—');
+  $('bPrice').className='bridge'; $('bQty').className='bridge'; $('vPrice').textContent='—'; $('vQty').textContent='—';
+  $('total').className='total'; $('predictP').classList.remove('show'); $('predictQ').classList.remove('show'); $('pfbP').textContent=''; $('pfbQ').textContent='';
+  $('b0').disabled=false; $('b1').disabled=true; $('b2').disabled=true; $('b3').disabled=true;
+  $('status').textContent='Start with three columns: actual cost, a bridge column, and standard cost.'; $('status').style.color='';
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'A',q2:'B',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: to isolate price, keep actual quantity the same in both columns. The only thing changing is price: actual price versus standard price.",
+    "err": "Not quite. Solution: for price variance, compare AQ x AP to AQ x SP. Actual quantity stays the same so the difference is caused only by price."
+  },
+  "q2": {
+    "ok": "Correct. Solution: a favorable cost variance means actual cost was lower than standard or budgeted cost for that input or activity.",
+    "err": "Not quite. Solution: favorable means the actual result improved operating income compared with the standard, usually because actual cost was lower than expected."
+  },
+  "q3": {
+    "ok": "Correct. Solution: using 2,200 pounds when the standard allowed 2,000 pounds means 200 extra pounds were used. Extra input use creates an unfavorable quantity variance.",
+    "err": "Not quite. Solution: quantity variance compares actual quantity used with standard quantity allowed. Using more than standard is unfavorable."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'){ if(step===0)goCols(); else if(step===1)goPrice(); else if(step===2)goQty(); else if(step===3)goTotal(); } });
+</script>
+</body>
+</html>

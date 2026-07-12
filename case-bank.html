@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Real-World Case Bank — Managerial Accounting Animations (ACCT 2302)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;
+    --accent:#0f766e;--accent2:#14b8a6;--blue:#2563eb;--gold:#b45309;--red:#dc2626;--good:#059669;
+    --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1080px,100%);margin:0 auto;padding:1.6rem 1rem 3rem}
+  header{text-align:center}
+  .kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}
+  h1{font-size:clamp(1.4rem,3.6vw,2.1rem);font-weight:850;line-height:1.12}
+  .subtitle{color:var(--muted);font-size:.97rem;max-width:760px;margin:.6rem auto 0}
+  .home{display:inline-block;margin-top:.8rem;color:var(--accent);font-weight:800;font-size:.85rem;text-decoration:none}
+  .home:hover{text-decoration:underline}
+
+  .about{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.2rem;margin:1.3rem auto 0;max-width:880px}
+  .about h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.45rem}
+  .about p{font-size:.9rem;color:#384455;margin-bottom:.5rem}
+  .about p:last-child{margin-bottom:0}
+  .about strong{color:var(--ink)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;align-items:center;margin:1.3rem 0 .3rem}
+  .chip{border:2px solid var(--line);background:#fff;color:var(--muted);border-radius:20px;padding:.4rem 1rem;font-size:.82rem;font-weight:850;cursor:pointer;transition:all .15s}
+  .chip:hover{border-color:#a0aec0;color:var(--ink)}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .count{color:var(--muted);font-size:.82rem;font-weight:800;width:100%;text-align:center;margin-top:.2rem}
+
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}
+  .case{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:14px;box-shadow:var(--shadow);padding:1.05rem 1.15rem;display:grid;gap:.5rem;align-content:start}
+  .case.hide{display:none}
+  .case[data-tier="top"]{border-top-color:var(--accent)}
+  .case[data-tier="strong"]{border-top-color:var(--blue)}
+  .case[data-tier="sensitive"]{border-top-color:var(--gold)}
+  .case-top{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;justify-content:space-between}
+  .badges{display:flex;flex-wrap:wrap;gap:.35rem}
+  .badge{font-size:.62rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:.18rem .5rem}
+  .badge-top{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+  .badge-strong{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+  .badge-sensitive{background:#fff7ed;color:#b45309;border:1px solid #fed7aa}
+  .chap{font-size:.66rem;font-weight:900;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;text-align:right}
+  .case h3{font-size:1.04rem;line-height:1.22}
+  .concept{font-size:.82rem;font-weight:800;color:var(--accent)}
+  .case[data-tier="strong"] .concept{color:var(--blue)}
+  .case[data-tier="sensitive"] .concept{color:var(--gold)}
+  .summary{font-size:.875rem;color:#334155;line-height:1.5}
+  .fit{font-size:.85rem;color:#334155;background:#f8fafc;border-radius:8px;padding:.5rem .65rem}
+  .fit strong{color:var(--ink)}
+  .row{font-size:.8rem;color:var(--muted);font-weight:700}
+  .row .lbl{font-weight:900;color:var(--ink);text-transform:uppercase;letter-spacing:.04em;font-size:.66rem}
+  .links a{display:inline-block;margin:.12rem .3rem .12rem 0;color:var(--accent);font-weight:850;text-decoration:none;border-bottom:1px dotted currentColor}
+  .links a:hover{border-bottom-style:solid}
+  .src a{color:var(--blue);font-weight:800;text-decoration:none}
+  .src a:hover{text-decoration:underline}
+  .src a::after{content:" \2197";font-size:.78em}
+
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.5rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.8rem}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}.chap{text-align:left}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Instructor Resource · ACCT 2302</div>
+  <h1>Real-World Case Bank</h1>
+  <p class="subtitle">Famous, source-backed business cases you can drop into the animations as a "Real-World Case" box — modeled on the Xbox case already in <a href="Ch11_ResidualIncome.html">Ch 11 · Residual Income</a>.</p>
+  <a class="home" href="index.html">&larr; Back to the animation hub</a>
+</header>
+
+<section class="about">
+  <h2>How to use this bank</h2>
+  <p>Each card pairs a recognizable company or product with the <strong>one animation concept it illustrates best</strong>, a short summary of the real story, and <strong>links to the source articles</strong> so you can verify and assign them.</p>
+  <p>Selection bar (same as the Xbox case): a brand students know &middot; a verifiable source &middot; a situation that <em>is</em> the lesson's tension &middot; a built-in question to debate.</p>
+  <p><strong>On the numbers:</strong> the figures below are the <em>real reported</em> ones (verified 2024&ndash;2026). If you build a case into an animation, the in-animation worked numbers can stay simple/illustrative while the linked article serves as the discussion prompt — exactly how the Xbox card is framed.</p>
+</section>
+
+<div class="filters" role="group" aria-label="Filter cases">
+  <button class="chip active" data-filter="all">All</button>
+  <button class="chip" data-filter="top">Top picks</button>
+  <button class="chip" data-filter="strong">Also strong</button>
+  <button class="chip" data-filter="sensitive">Sensitive</button>
+  <div class="count"><span id="count">20</span> cases shown</div>
+</div>
+
+<div class="grid" id="grid">
+
+  <!-- ===== TOP PICKS ===== -->
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 7 · Relevant Cost</div></div>
+    <h3>The Concorde &mdash; the sunk-cost fallacy</h3>
+    <div class="concept">Sunk costs are irrelevant to a decision</div>
+    <p class="summary">Britain and France kept funding the Concorde for years after it was clearly not commercially viable &mdash; over $2.8&nbsp;billion spent and only 20 aircraft ever built &mdash; because abandoning it felt like wasting the money already spent. The bias is literally named the "Concorde fallacy."</p>
+    <p class="fit"><strong>Why it fits:</strong> your relevant-cost filter's whole job is to drop sunk and unavoidable costs. <em>Debate:</em> should money already spent affect a go / no-go decision?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch07_RelevantCostFilter.html">Relevant Cost Filter</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.aviationfile.com/the-concorde-fallacy-a-cautionary-tale-about-sunk-costs/" target="_blank" rel="noopener">AviationFile</a> &middot; <a href="https://en.wikipedia.org/wiki/Sunk_cost" target="_blank" rel="noopener">Wikipedia: Sunk cost</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 2 · Job Costing / Overhead</div></div>
+    <h3>"Forrest Gump never made a profit" &mdash; Hollywood accounting</h3>
+    <div class="concept">Job costing &amp; overhead allocation</div>
+    <p class="summary">The film grossed about $678&nbsp;million on a ~$55&nbsp;million budget, yet Paramount's books showed a "net loss" after a 15% studio-overhead charge and a 32%-of-gross distribution fee. In a related case a judge called the studio's net-profit accounting "unconscionable."</p>
+    <p class="fit"><strong>Why it fits:</strong> each film is a "job," and the case shows how overhead-allocation choices can flip a job from profit to loss. <em>Debate:</em> is the overhead allocation legitimate?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch02_JobCostSheet.html">Job Cost Sheet</a> <a href="Ch02_PlantwideVsDepartmental.html">Plantwide vs. Departmental</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://pages.stern.nyu.edu/~wgreene/entertainmentandmedia/GumpAccounting.pdf" target="_blank" rel="noopener">NYU Stern (PDF)</a> &middot; <a href="https://en.wikipedia.org/wiki/Hollywood_accounting" target="_blank" rel="noopener">Wikipedia</a> &middot; <a href="https://www.cnn.com/2023/07/19/business/nightcap-hollywood-accounting-strike/index.html" target="_blank" rel="noopener">CNN</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 6 · Contribution Margin</div></div>
+    <h3>$8 movie-theater popcorn</h3>
+    <div class="concept">Contribution margin &amp; loss leaders</div>
+    <p class="summary">Theaters hand up to ~90% of opening-run ticket money to studios, so tickets barely break even &mdash; but concessions run ~85% margins and deliver around 40% of profits from only ~20% of revenue. A bag of popcorn costs a theater roughly $0.90 to make.</p>
+    <p class="fit"><strong>Why it fits:</strong> a vivid "where does the contribution margin actually come from?" case. <em>Debate:</em> why is the popcorn so expensive?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch06_ContributionMargin.html">Contribution Margin</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.gsb.stanford.edu/insights/why-does-movie-popcorn-cost-so-much" target="_blank" rel="noopener">Stanford GSB</a> &middot; <a href="https://thehustle.co/why-is-movie-theater-popcorn-so-outrageously-expensive" target="_blank" rel="noopener">The Hustle</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 11 · Transfer Pricing</div></div>
+    <h3>Apple's &euro;13B Ireland tax case</h3>
+    <div class="concept">Transfer pricing &amp; the arm's-length principle</div>
+    <p class="summary">How Apple priced transactions among its own Irish subsidiaries let it pay an effective tax rate as low as 0.005% (2014). In September 2024 the EU Court of Justice ordered Ireland to recover &euro;13&nbsp;billion, turning on whether those intercompany prices were "arm's length."</p>
+    <p class="fit"><strong>Why it fits:</strong> the real-world transfer-pricing story. <em>Debate:</em> how should related divisions price internal transfers?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_TransferPricing.html">Transfer Pricing</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://en.wikipedia.org/wiki/Apple%27s_EU_tax_dispute" target="_blank" rel="noopener">Wikipedia</a> &middot; <a href="https://www.taxnotes.com/featured-news/cjeu-reinstates-eu13-billion-state-aid-decision-against-apple/2024/09/10/7l63y" target="_blank" rel="noopener">Tax Notes</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · Residual Income</div></div>
+    <h3>Meta Reality Labs vs. Family of Apps</h3>
+    <div class="concept">The ROI trap / keep a low-ROI strategic bet?</div>
+    <p class="summary">In 2024 Reality Labs (Meta's AR/VR "metaverse" unit) lost $17.7&nbsp;billion, while the Family of Apps earned about $28&nbsp;billion in Q4 alone. Investors openly debate whether Meta should keep pouring money into a deeply unprofitable bet for a long-term strategic payoff.</p>
+    <p class="fit"><strong>Why it fits:</strong> a more current twin of the Xbox case &mdash; a profitable core funding a money-losing strategic division. <em>Debate:</em> judge Reality Labs on today's ROI, or on long-term value above the required return?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_ResidualIncome.html">Residual Income</a> <a href="Ch11_SegmentMargin.html">Segment Margin</a> <a href="Ch08_NPV.html">NPV</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://variety.com/2024/digital/news/meta-q2-2024-earnings-reality-labs-losses-1236091695/" target="_blank" rel="noopener">Variety</a> &middot; <a href="https://www.sec.gov/Archives/edgar/data/0001326801/000132680124000065/meta-06302024xexhibit991.htm" target="_blank" rel="noopener">Meta 8-K (SEC)</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 11 · Segment Margin</div></div>
+    <h3>Ford Model e vs. Ford Pro</h3>
+    <div class="concept">Segment performance with real reported segments</div>
+    <p class="summary">In 2024 Ford Model e (electric vehicles) lost $5.1&nbsp;billion in EBIT, while Ford Pro (commercial vehicles and services) earned +$9&nbsp;billion at a 13.5% margin. Ford reports these as actual operating segments, so the contrast uses real numbers, not illustrative ones.</p>
+    <p class="fit"><strong>Why it fits:</strong> the cleanest real segment-margin contrast inside one company. <em>Debate:</em> keep investing in the loss-making EV segment?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_SegmentMargin.html">Segment Margin</a> <a href="Ch11_ResidualIncome.html">Residual Income</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.just-auto.com/news/ford-profit-q4-ev/" target="_blank" rel="noopener">just-auto</a> &middot; <a href="https://electrek.co/2025/02/05/ford-beat-q4-2024-earnings-but-ev-losses-continue-to-pile-up/" target="_blank" rel="noopener">Electrek</a></div>
+  </article>
+
+  <!-- ===== ALSO STRONG ===== -->
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · ROI / DuPont</div></div>
+    <h3>Walmart vs. LVMH &mdash; two routes to the same return</h3>
+    <div class="concept">Margin &times; turnover (DuPont)</div>
+    <p class="summary">Walmart earns a thin ~2.4% margin but turns assets ~2.5&times; a year; luxury group LVMH earns a rich ~15% margin but turns assets only ~0.7&times;. Different levers, similar overall return &mdash; the textbook DuPont contrast with real firms.</p>
+    <p class="fit"><strong>Why it fits:</strong> your "two levers behind ROI" animation, made concrete. <em>Debate:</em> which lever is each company pulling?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_ROIDuPont.html">ROI DuPont</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://ryanoconnellfinance.com/dupont-analysis/" target="_blank" rel="noopener">DuPont analysis explainer</a> &middot; <a href="https://en.wikipedia.org/wiki/DuPont_analysis" target="_blank" rel="noopener">Wikipedia</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · ROI / Segment</div></div>
+    <h3>Amazon AWS vs. Retail</h3>
+    <div class="concept">Business mix reshapes overall margin / ROI</div>
+    <p class="summary">In 2024 AWS earned about $39.8&nbsp;billion of operating income on ~$107.6&nbsp;billion of revenue (37%+ margin) &mdash; over 60% of Amazon's total operating profit from under 20% of its revenue. A high-margin segment can dominate the whole company's return.</p>
+    <p class="fit"><strong>Why it fits:</strong> shows how one segment's margin pulls the company average. <em>Debate:</em> is Amazon a retailer or a cloud company?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_ROIDuPont.html">ROI DuPont</a> <a href="Ch11_SegmentMargin.html">Segment Margin</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.geekwire.com/2024/aws-tops-10b-in-quarterly-operating-for-the-first-time-as-jassy-cites-reacceleration-of-cloud-business/" target="_blank" rel="noopener">GeekWire</a> &middot; <a href="https://www.fool.com/investing/2024/01/10/amazon-e-commerce-company-74-profit-this-instead/" target="_blank" rel="noopener">The Motley Fool</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 8 · NPV &middot; Ch 11</div></div>
+    <h3>Alphabet "Other Bets" / Waymo</h3>
+    <div class="concept">Investment center &amp; long-term option value</div>
+    <p class="summary">Alphabet's Other Bets (Waymo self-driving, Verily health, etc.) lost about $3.27&nbsp;billion in the first nine months of 2024, while Google Services earned roughly $88&nbsp;billion. These are early-stage bets that may pay off years later.</p>
+    <p class="fit"><strong>Why it fits:</strong> don't punish a long-horizon investment center too early. <em>Debate:</em> when is patience justified versus throwing good money after bad?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch08_NPV.html">NPV</a> <a href="Ch11_ResidualIncome.html">Residual Income</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.sec.gov/Archives/edgar/data/1652044/000165204424000115/googexhibit991q32024.htm" target="_blank" rel="noopener">Alphabet Q3 2024 (SEC)</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 5 · Cost Behavior &middot; Ch 7</div></div>
+    <h3>Airlines selling the last empty seat cheap</h3>
+    <div class="concept">Fixed costs &amp; the marginal cost of idle capacity</div>
+    <p class="summary">Once a flight is scheduled, almost all of its cost (crew, fuel, gate, the aircraft) is fixed and already committed. The extra cost of one more passenger is tiny, so a deeply discounted standby fare still adds profit.</p>
+    <p class="fit"><strong>Why it fits:</strong> a double fit &mdash; fixed-vs-variable behavior and the special-order-with-idle-capacity decision. <em>Debate:</em> why discount the empty seat at all?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch05_CostBehaviorDial.html">Cost Behavior Dial</a> <a href="Ch07_SpecialOrderCapacity.html">Special Order at Capacity</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.globalair.com/articles/the-hidden-economics-of-empty-airline-seats/12308" target="_blank" rel="noopener">GlobalAir</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 6 · Contribution Margin</div></div>
+    <h3>HP printers &amp; ink (razor-and-blades)</h3>
+    <div class="concept">Where the contribution margin really lives</div>
+    <p class="summary">HP and others sell the printer at or below cost, then make the real money on high-margin ink cartridges &mdash; the same "sell the handle cheap, profit on the blades" model. The platform carries little or negative margin; the consumable carries it all.</p>
+    <p class="fit"><strong>Why it fits:</strong> the same hardware-loss logic as the Xbox model, told through a product every student owns. <em>Debate:</em> which product should carry the margin?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch06_ContributionMargin.html">Contribution Margin</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://en.wikipedia.org/wiki/Razor_and_blades_model" target="_blank" rel="noopener">Wikipedia: Razor and blades model</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 8 · NPV</div></div>
+    <h3>Amazon &mdash; Bezos's 1997 letter</h3>
+    <div class="concept">Value = present value of future cash flows</div>
+    <p class="summary">Amazon told shareholders it optimizes for long-term free cash flow per share, not quarterly accounting earnings &mdash; "shares are worth only the present value of their future cash flows, not&hellip; future earnings." A primary-source statement of the NPV idea.</p>
+    <p class="fit"><strong>Why it fits:</strong> the core of NPV in a CEO's own words. <em>Debate:</em> long-term cash value versus protecting this quarter's reported profit.</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch08_NPV.html">NPV</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.sec.gov/Archives/edgar/data/1018724/000119312505070440/dex991.htm" target="_blank" rel="noopener">Amazon shareholder letter (SEC)</a></div>
+  </article>
+
+  <article class="case" data-tier="top">
+    <div class="case-top"><div class="badges"><span class="badge badge-top">Top pick</span></div><div class="chap">Ch 12 · Operating Cash Flow</div></div>
+    <h3>Netflix &mdash; profitable but burning cash</h3>
+    <div class="concept">Cash flow is not net income</div>
+    <p class="summary">Netflix's net income rose (roughly $187&nbsp;million to $1.2&nbsp;billion across 2016&ndash;2018) even as free cash flow sank to about &minus;$3&nbsp;billion, because content cash is paid years before it is expensed. By 2023 the timing reversed and free cash flow swung to about +$6.9&nbsp;billion.</p>
+    <p class="fit"><strong>Why it fits:</strong> the cleanest "cash &ne; profit / timing differences" case. <em>Debate:</em> was Netflix healthy when it was profitable but cash-negative?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch12_IndirectOperatingCash.html">Indirect Method: Operating Cash</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.fool.com/investing/2020/05/31/netflix-free-cash-flow-debate-is-over-bulls-won.aspx" target="_blank" rel="noopener">The Motley Fool</a> &middot; <a href="https://www.hollywoodreporter.com/news/general-news/will-netflix-finally-end-cash-burn-1250782/" target="_blank" rel="noopener">Hollywood Reporter</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 6 · Break-Even</div></div>
+    <h3>Disney's <em>John Carter</em> $200M flop</h3>
+    <div class="concept">Break-even when you keep only part of revenue</div>
+    <p class="summary">Studios keep only about half of ticket sales, so a film must gross roughly twice its budget to break even. <em>John Carter</em> (~$264M budget + ~$100M marketing) needed about $727&nbsp;million, made ~$284&nbsp;million, and led to a $200&nbsp;million write-down.</p>
+    <p class="fit"><strong>Why it fits:</strong> concrete break-even arithmetic with a famous name. <em>Debate:</em> compute the break-even point and why it missed.</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch06_BreakEven.html">Break-Even</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.csmonitor.com/The-Culture/Latest-News-Wires/2012/0320/John-Carter-Movie-to-lose-200-million-among-biggest-Hollywood-flops-ever" target="_blank" rel="noopener">Christian Science Monitor</a> &middot; <a href="https://en.wikipedia.org/wiki/John_Carter_(film)" target="_blank" rel="noopener">Wikipedia</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · Residual Income &middot; Ch 8</div></div>
+    <h3>Intel Foundry vs. Intel Products</h3>
+    <div class="concept">Asset-heavy strategic investment center</div>
+    <p class="summary">Intel Foundry lost about $2.8&nbsp;billion in a single quarter (Q3 2024) on $4.3&nbsp;billion of mostly internal sales, while Intel moved to run it as a separate subsidiary with its own board. Heavy assets and losses while it tries to build a long-term business.</p>
+    <p class="fit"><strong>Why it fits:</strong> should Intel keep funding a strategic, asset-heavy unit that drags ROI now? <em>Debate:</em> the residual-income / long-term-value question. <em>(Note: a strategic-investment case, not a variance case.)</em></p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_ResidualIncome.html">Residual Income</a> <a href="Ch08_NPV.html">NPV</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://marklapedus.substack.com/p/intels-reorg-creates-new-foundry" target="_blank" rel="noopener">Semiecosystem</a> &middot; <a href="https://www.intc.com/news-events/press-releases/detail/1716/intel-reports-third-quarter-2024-financial-results" target="_blank" rel="noopener">Intel IR</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · Segment &middot; Ch 7</div></div>
+    <h3>Comcast spins off cable into "Versant"</h3>
+    <div class="concept">Keep or drop a declining legacy segment</div>
+    <p class="summary">Comcast separated its declining cable networks (CNBC, MSNBC &mdash; now "MS&nbsp;NOW", USA, E!, Golf Channel, ~$7&nbsp;billion in revenue) into a stand-alone company, <strong>Versant</strong>, with the spin-off completed January 2, 2026 &mdash; splitting a legacy segment off from faster-growing core businesses.</p>
+    <p class="fit"><strong>Why it fits:</strong> a real keep-or-drop / divest decision on a segment. <em>Debate:</em> when is a profitable-but-declining segment worth separating?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_SegmentMargin.html">Segment Margin</a> <a href="Ch07_RelevantCostFilter.html">Relevant Cost Filter</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.cnbc.com/2025/05/06/comcast-spinco-corporate-name-versant.html" target="_blank" rel="noopener">CNBC</a> &middot; <a href="https://en.wikipedia.org/wiki/Versant" target="_blank" rel="noopener">Wikipedia</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · Segment Margin</div></div>
+    <h3>J&amp;J spins off Kenvue</h3>
+    <div class="concept">A good business with a different return profile</div>
+    <p class="summary">In 2023 Johnson &amp; Johnson spun off its consumer-health brands &mdash; Tylenol, Band-Aid, Listerine, Neutrogena &mdash; as Kenvue, to focus on faster-growing pharmaceuticals and medtech. A profitable segment, but with a different growth and return profile than the core.</p>
+    <p class="fit"><strong>Why it fits:</strong> "good business, but not the same return as the core" &mdash; the segment-evaluation question. <em>Debate:</em> why separate a profitable unit?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_SegmentMargin.html">Segment Margin</a> <a href="Ch11_ResidualIncome.html">Residual Income</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.cnbc.com/2023/05/04/jj-kenvue-ipo-kvue-starts-trading-on-nyse.html" target="_blank" rel="noopener">CNBC</a> &middot; <a href="https://en.wikipedia.org/wiki/Kenvue" target="_blank" rel="noopener">Wikipedia</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 11 · Segment Margin</div></div>
+    <h3>GE breaks into three companies</h3>
+    <div class="concept">Different divisions, different measures</div>
+    <p class="summary">GE completed its split into three independent public companies &mdash; GE HealthCare (January 2023), GE Vernova (energy, April 2024) and GE Aerospace &mdash; concluding that very different divisions deserve their own performance measures and capital.</p>
+    <p class="fit"><strong>Why it fits:</strong> a broad "one performance metric doesn't fit every division" case. <em>Debate:</em> when does a conglomerate create more value apart than together?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch11_SegmentMargin.html">Segment Margin</a> <a href="Ch11_ResidualIncome.html">Residual Income</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.geaerospace.com/news/press-releases/ge-aerospace-launches-independent-investment-grade-public-company-following" target="_blank" rel="noopener">GE Aerospace</a></div>
+  </article>
+
+  <article class="case" data-tier="strong">
+    <div class="case-top"><div class="badges"><span class="badge badge-strong">Also strong</span></div><div class="chap">Ch 6 · Break-Even &middot; Ch 11</div></div>
+    <h3>Disney streaming vs. parks</h3>
+    <div class="concept">Reaching break-even; segment contrast</div>
+    <p class="summary">Disney's streaming business (Disney+, Hulu) went from billion-dollar quarterly losses to its first profit in 2024 (combined direct-to-consumer operating income about $321&nbsp;million in fiscal Q4), while the parks have long been a reliable profit engine.</p>
+    <p class="fit"><strong>Why it fits:</strong> a live example of a business crossing break-even, next to a mature high-margin segment. <em>Debate:</em> how long should a segment be allowed to lose money?</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch06_BreakEven.html">Break-Even</a> <a href="Ch11_SegmentMargin.html">Segment Margin</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://variety.com/2024/tv/news/disney-q3-2024-earnings-streaming-profit-inside-out-2-1236098290/" target="_blank" rel="noopener">Variety</a> &middot; <a href="https://www.axios.com/2024/05/07/disney-entertainment-streaming-profit-earnings" target="_blank" rel="noopener">Axios</a></div>
+  </article>
+
+  <!-- ===== SENSITIVE ===== -->
+  <article class="case" data-tier="sensitive">
+    <div class="case-top"><div class="badges"><span class="badge badge-sensitive">Sensitive &mdash; use with care</span></div><div class="chap">Ch 10 · Favorable / Unfavorable</div></div>
+    <h3>Boeing 737 MAX</h3>
+    <div class="concept">A "favorable" cost variance isn't always good news</div>
+    <p class="summary">A cost-cutting, outsourcing-heavy culture produced short-term "favorable" cost outcomes but contributed to two crashes that killed 346 people. It powerfully shows that beating a cost target can hide a disaster.</p>
+    <p class="fit"><strong>Heads-up:</strong> the case involves fatalities &mdash; a heavy choice for an intro class. A gentler version with the same lesson: a buyer who chooses cheap material (favorable price variance) that then fails quality control (unfavorable usage / rework).</p>
+    <div class="row links"><span class="lbl">Use in:</span> <a href="Ch10_FavorableUnfavorable.html">Favorable Isn't Always Good</a></div>
+    <div class="row src"><span class="lbl">Sources:</span> <a href="https://www.library.hbs.edu/working-knowledge/why-boeings-problems-with-737-max-began-more-than-25-years-ago" target="_blank" rel="noopener">HBS Working Knowledge</a> &middot; <a href="https://prospect.org/2024/01/09/2024-01-09-boeing-737-max-financial-mindset/" target="_blank" rel="noopener">The American Prospect</a></div>
+  </article>
+
+</div>
+
+<footer>ACCT 2302 &middot; <i>Fundamentals of Managerial Accounting</i>, v3.0 (Heisinger &amp; Hoyle, FlatWorld). Case bank for instructor use; reported figures verified 2024&ndash;2026. Source articles are external and open in a new tab.</footer>
+</div>
+
+<script>
+  const chips = document.querySelectorAll('.chip');
+  const cards = document.querySelectorAll('.case');
+  const countEl = document.getElementById('count');
+  // Display cases grouped by tier (Top picks first), regardless of source order.
+  const grid = document.getElementById('grid');
+  const tierRank = { top:0, strong:1, sensitive:2 };
+  Array.from(cards)
+    .sort((a, b) => tierRank[a.dataset.tier] - tierRank[b.dataset.tier])
+    .forEach(el => grid.appendChild(el));
+  function applyFilter(f){
+    let n = 0;
+    cards.forEach(card => {
+      const show = (f === 'all') || (card.getAttribute('data-tier') === f);
+      card.classList.toggle('hide', !show);
+      if(show) n++;
+    });
+    countEl.textContent = n;
+  }
+  chips.forEach(chip => chip.addEventListener('click', () => {
+    chips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    applyFilter(chip.getAttribute('data-filter'));
+  }));
+  applyFilter('all');
+</script>
+</body>
+</html>

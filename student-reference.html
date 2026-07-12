@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>ACCT 2302 Student Reference</title>
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d8e1ea; --panel:#fff;
+    --teal:#0f766e; --blue:#2f80ed; --rose:#be185d; --amber:#b87514;
+    --shadow:0 14px 34px rgba(23,34,51,.10);
+  }
+  body{ min-height:100vh; font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif; background:linear-gradient(180deg,#f9fbfd 0%,#eef3f7 100%); color:var(--ink); line-height:1.5; }
+  .app{ width:min(1120px,100%); margin:0 auto; padding:24px 18px 44px; }
+  .top-link{ display:inline-block; margin-bottom:16px; color:var(--teal); font-weight:900; text-decoration:none; }
+  .top-link:hover{ text-decoration:underline; }
+  header{ display:grid; gap:8px; margin-bottom:18px; }
+  .kicker{ color:var(--teal); font-size:.78rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+  h1{ font-size:clamp(1.65rem,4vw,2.45rem); line-height:1.08; }
+  .header-note{ color:var(--muted); font-size:.96rem; max-width:760px; }
+  .band{ background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); padding:16px; margin:16px 0; }
+  .band h2{ font-size:1.05rem; margin-bottom:10px; }
+  .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .item{ border:1px solid var(--line); border-radius:8px; background:#f8fafc; padding:10px 12px; }
+  .item strong{ display:block; color:var(--ink); font-size:.92rem; margin-bottom:2px; }
+  .item span{ display:block; color:var(--muted); font-size:.86rem; }
+  .formula{ font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; color:#0f172a; font-size:.86rem; overflow-wrap:anywhere; }
+  .unit-title{ color:var(--teal); font-size:.76rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; margin:18px 0 8px; }
+  .note{ border-left:5px solid var(--amber); background:#fff7ed; border-radius:8px; padding:10px 12px; color:#7c4a03; font-size:.88rem; font-weight:700; }
+  @media(max-width:760px){ .grid{ grid-template-columns:1fr; } .app{ padding:18px 10px 32px; } }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <a class="top-link" href="index.html">&lt;- Back to animation hub</a>
+  <header>
+    <div class="kicker">ACCT 2302 Student Reference</div>
+    <h1>Terms And Formulas You Will Keep Reusing</h1>
+    <p class="header-note">A quick reference for students who are new to accounting. Use this beside the animations when a term or formula slows you down.</p>
+  </header>
+
+  <section class="band" aria-labelledby="terms-title">
+    <h2 id="terms-title">Plain-Language Terms</h2>
+    <div class="grid">
+      <div class="item"><strong>WIP</strong><span>Work in Process. Products started but not finished yet.</span></div>
+      <div class="item"><strong>COGM</strong><span>Cost of Goods Manufactured. Finished production moved out of WIP.</span></div>
+      <div class="item"><strong>Applied overhead</strong><span>Overhead assigned to jobs using a predetermined rate.</span></div>
+      <div class="item"><strong>Contribution margin</strong><span>Sales minus variable costs. The amount left to cover fixed costs and profit.</span></div>
+      <div class="item"><strong>Relevant cost</strong><span>A future cost that changes between decision alternatives.</span></div>
+      <div class="item"><strong>Opportunity cost</strong><span>Benefit given up when choosing one option over another.</span></div>
+      <div class="item"><strong>Relevant range</strong><span>The activity level where the cost formula is expected to behave normally.</span></div>
+      <div class="item"><strong>Traceable fixed cost</strong><span>A fixed cost caused by one segment and avoidable if that segment disappears.</span></div>
+      <div class="item"><strong>Common fixed cost</strong><span>A shared fixed cost that usually remains even if one segment is dropped.</span></div>
+      <div class="item"><strong>Denominator activity</strong><span>The planned activity level used to compute a fixed overhead rate.</span></div>
+      <div class="item"><strong>NPV</strong><span>Net present value. Present value of future cash flows minus the investment.</span></div>
+      <div class="item"><strong>IRR</strong><span>The discount rate that makes NPV equal zero.</span></div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="formulas-title">
+    <h2 id="formulas-title">Core Formulas</h2>
+    <div class="unit-title">Costs And Product Costing</div>
+    <div class="grid">
+      <div class="item"><strong>Prime cost</strong><span class="formula">Direct materials + Direct labor</span></div>
+      <div class="item"><strong>Conversion cost</strong><span class="formula">Direct labor + Manufacturing overhead</span></div>
+      <div class="item"><strong>COGM</strong><span class="formula">Beginning WIP + Total manufacturing costs - Ending WIP</span></div>
+      <div class="item"><strong>Predetermined OH rate</strong><span class="formula">Estimated overhead / Estimated activity</span></div>
+      <div class="item"><strong>Applied overhead</strong><span class="formula">Predetermined OH rate x Actual activity</span></div>
+      <div class="item"><strong>ABC activity rate</strong><span class="formula">Activity cost pool / Activity driver total</span></div>
+    </div>
+
+    <div class="unit-title">Cost Behavior And CVP</div>
+    <div class="grid">
+      <div class="item"><strong>Cost formula</strong><span class="formula">Total cost = Fixed cost + (Variable cost per unit x Units)</span></div>
+      <div class="item"><strong>High-low variable cost</strong><span class="formula">(High cost - Low cost) / (High activity - Low activity)</span></div>
+      <div class="item"><strong>Contribution margin per unit</strong><span class="formula">Selling price per unit - Variable cost per unit</span></div>
+      <div class="item"><strong>Break-even units</strong><span class="formula">Fixed costs / Contribution margin per unit</span></div>
+      <div class="item"><strong>Target-profit units</strong><span class="formula">(Fixed costs + Target profit) / CM per unit</span></div>
+      <div class="item"><strong>Margin of safety</strong><span class="formula">Actual sales - Break-even sales</span></div>
+    </div>
+
+    <div class="unit-title">Decisions, Budgets, And Performance</div>
+    <div class="grid">
+      <div class="item"><strong>Special order profit</strong><span class="formula">Special price - Incremental cost - Opportunity cost</span></div>
+      <div class="item"><strong>NPV</strong><span class="formula">Present value of inflows - Initial investment</span></div>
+      <div class="item"><strong>Cash before financing</strong><span class="formula">Beginning cash + Receipts - Payments</span></div>
+      <div class="item"><strong>Borrowing needed</strong><span class="formula">Minimum cash balance - Cash before financing</span></div>
+      <div class="item"><strong>Price variance</strong><span class="formula">(Actual price - Standard price) x Actual quantity</span></div>
+      <div class="item"><strong>Quantity variance</strong><span class="formula">(Actual quantity - Standard quantity) x Standard price</span></div>
+      <div class="item"><strong>ROI</strong><span class="formula">Operating income / Average operating assets</span></div>
+      <div class="item"><strong>ROI decomposition</strong><span class="formula">Margin x Turnover</span></div>
+      <div class="item"><strong>Required return on assets</strong><span class="formula">Required rate x Average operating assets</span></div>
+      <div class="item"><strong>Residual income</strong><span class="formula">Operating income - Required return on assets</span></div>
+      <div class="item"><strong>Segment margin</strong><span class="formula">Contribution margin - Traceable fixed costs</span></div>
+      <div class="item"><strong>Operating cash flow - direct</strong><span class="formula">Operating cash receipts - Operating cash payments</span></div>
+      <div class="item"><strong>Operating cash flow - indirect</strong><span class="formula">Net income + Noncash expenses +/- working capital changes</span></div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="stuck-title">
+    <h2 id="stuck-title">When A Problem Feels Stuck</h2>
+    <p class="note">First ask: is this a cost-flow problem, a behavior problem, or a decision problem? Cost-flow problems track where costs go. Behavior problems separate fixed and variable parts. Decision problems keep only future amounts that change.</p>
+  </section>
+</main>
+</body>
+</html>

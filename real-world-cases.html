@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Real-World Case Library - ACCT 2302</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#172233;--muted:#5d6a7a;--line:#d8e1ea;--panel:#fff;
+    --teal:#0f766e;--blue:#2f80ed;--purple:#6d28d9;--amber:#b87514;
+    --rose:#be185d;--shadow:0 12px 30px rgba(23,34,51,.10)
+  }
+  body{min-height:100vh;font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(180deg,#f9fbfd,#eef3f7);color:var(--ink);line-height:1.5}
+  a{color:inherit}
+  .app{width:min(1120px,100%);margin:0 auto;padding:24px 18px 44px}
+  header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:end;margin-bottom:18px}
+  .kicker{color:var(--teal);font-size:.76rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+  h1{font-size:clamp(1.55rem,4vw,2.35rem);line-height:1.08}
+  .header-note{color:var(--muted);font-size:.94rem;max-width:760px;margin-top:.55rem}
+  .top-links{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .link-btn{display:inline-grid;place-items:center;min-height:38px;border-radius:8px;padding:0 13px;background:var(--ink);color:#fff;text-decoration:none;font-size:.8rem;font-weight:900}
+  .link-btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+  .summary-item{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;box-shadow:var(--shadow)}
+  .summary-label{color:var(--muted);font-size:.68rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px}
+  .summary-value{font-size:1.02rem;font-weight:900}
+  .note{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid var(--amber);border-radius:10px;padding:12px 14px;margin:16px 0;color:#6b3f08;font-size:.9rem}
+  .toolbar{position:sticky;top:0;z-index:10;background:rgba(249,251,253,.94);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;padding:10px;margin:18px 0;display:flex;gap:8px;flex-wrap:wrap;box-shadow:var(--shadow)}
+  .toolbar a{border:1px solid var(--line);background:#fff;color:var(--teal);border-radius:999px;padding:5px 10px;text-decoration:none;font-size:.76rem;font-weight:900}
+  .case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .case{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:16px;display:grid;gap:12px}
+  .case.high{border-top:5px solid var(--teal)}
+  .case.medium{border-top:5px solid var(--blue)}
+  .case.caution{border-top:5px solid var(--amber)}
+  .case.inactive{border-top:5px solid var(--rose)}
+  .case-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .case h2{font-size:1.05rem;line-height:1.22}
+  .badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:.63rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+  .badge.high{background:#d1fae5;color:#047857}
+  .badge.medium{background:#dbeafe;color:#1d4ed8}
+  .badge.caution{background:#fef3c7;color:#92400e}
+  .badge.inactive{background:#fce7f3;color:#9d174d}
+  .fit{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mini{border:1px solid var(--line);border-radius:8px;background:#f8fafc;padding:9px}
+  .mini strong{display:block;color:var(--ink);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+  .mini p,.case p{color:#334155;font-size:.88rem}
+  .use-links{display:flex;gap:7px;flex-wrap:wrap}
+  .use-links a{display:inline-grid;place-items:center;min-height:30px;border-radius:7px;background:#eef6f4;color:#0f766e;border:1px solid rgba(15,118,110,.22);padding:0 9px;text-decoration:none;font-size:.76rem;font-weight:900}
+  .sources{border-top:1px solid var(--line);padding-top:9px;display:flex;gap:7px;flex-wrap:wrap}
+  .sources a{color:var(--blue);font-size:.76rem;font-weight:850;text-decoration:none;border-bottom:1px solid rgba(47,128,237,.25)}
+  .sources a:hover{border-bottom-color:var(--blue)}
+  footer{margin-top:24px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.8rem;text-align:center}
+  @media(max-width:840px){header,.case-grid,.fit{grid-template-columns:1fr}.top-links{justify-content:flex-start}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:560px){.app{padding:18px 10px 30px}.summary{grid-template-columns:1fr}.case-head{display:grid}.toolbar{position:static}}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <div class="kicker">ACCT 2302 Instructor Support</div>
+      <h1>Real-World Case Library</h1>
+      <p class="header-note">Short business cases that can be added to existing managerial accounting animations. These are preview notes only; they are not new Practice questions.</p>
+    </div>
+    <div class="top-links">
+      <a class="link-btn" href="animation-ideas.html">Planning catalog</a>
+      <a class="link-btn secondary" href="index.html">Student hub</a>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Case summary">
+    <div class="summary-item"><div class="summary-label">Cases</div><div class="summary-value">11 examples</div></div>
+    <div class="summary-item"><div class="summary-label">Best first</div><div class="summary-value">Concorde, popcorn, Amazon</div></div>
+    <div class="summary-item"><div class="summary-label">Use as</div><div class="summary-value">Discussion prompts</div></div>
+    <div class="summary-item"><div class="summary-label">Course fit</div><div class="summary-value">Ch 2, 5, 6, 7, 8, 10, 11, 12</div></div>
+  </section>
+
+  <div class="note"><strong>Teaching note:</strong> These cases are designed like the Xbox example: recognizable, concrete, and tied to one managerial-accounting decision. Before embedding any case into a student animation, keep it short and connect it to one question students must answer.</div>
+
+  <nav class="toolbar" aria-label="Case shortcuts">
+    <a href="#concorde">Concorde</a>
+    <a href="#gump">Forrest Gump</a>
+    <a href="#popcorn">Popcorn</a>
+    <a href="#apple">Apple</a>
+    <a href="#walmart-lvmh">Walmart/LVMH</a>
+    <a href="#airlines">Airlines</a>
+    <a href="#printers">Printers/Ink</a>
+    <a href="#amazon">Amazon</a>
+    <a href="#netflix">Netflix</a>
+    <a href="#john-carter">John Carter</a>
+    <a href="#boeing">Boeing</a>
+  </nav>
+
+  <section class="case-grid" aria-label="Real-world cases">
+    <article class="case high" id="concorde">
+      <div class="case-head"><h2>1. The Concorde fallacy</h2><span class="badge high">Best fit</span></div>
+      <p>Britain and France continued supporting Concorde even after the project looked commercially weak. The teaching point is exactly the relevant-cost filter: money already spent is sunk and should not drive the go/no-go decision.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Ch07 relevant-cost filter</p></div>
+        <div class="mini"><strong>Class question</strong><p>Should past spending affect a future continue-or-stop decision?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch07_RelevantCostFilter.html">Open Ch07 filter</a></div>
+      <div class="sources"><a href="https://www.aviationfile.com/the-concorde-fallacy-a-cautionary-tale-about-sunk-costs/">Aviationfile</a><a href="https://en.wikipedia.org/wiki/Sunk_cost">Sunk cost background</a></div>
+    </article>
+
+    <article class="case medium" id="gump">
+      <div class="case-head"><h2>2. Forrest Gump and Hollywood accounting</h2><span class="badge medium">Strong</span></div>
+      <p>Each film can be treated like a job. Hollywood accounting makes a familiar point: overhead charges, distribution fees, and internal allocations can change whether a job appears profitable.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Job cost sheets; plantwide versus departmental overhead</p></div>
+        <div class="mini"><strong>Class question</strong><p>Who benefits when overhead is allocated to a job?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch02_JobCostSheet.html">Open Ch02 job cost</a><a href="Ch02_PlantwideVsDepartmental.html">Open Ch02 overhead</a></div>
+      <div class="sources"><a href="https://pages.stern.nyu.edu/~wgreene/entertainmentandmedia/GumpAccounting.pdf">NYU Stern PDF</a><a href="https://www.cnn.com/2023/07/19/business/nightcap-hollywood-accounting-strike/index.html">CNN</a><a href="https://en.wikipedia.org/wiki/Hollywood_accounting">Hollywood accounting</a></div>
+    </article>
+
+    <article class="case high" id="popcorn">
+      <div class="case-head"><h2>3. Movie-theater popcorn</h2><span class="badge high">Best fit</span></div>
+      <p>Tickets bring people into the theater, but concessions carry much of the profit. Stanford GSB explains that concessions are a smaller share of revenue but a much larger share of profit because theaters keep the concession dollars.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Contribution margin; target profit; margin of safety</p></div>
+        <div class="mini"><strong>Class question</strong><p>Where does the profit really come from: tickets or popcorn?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch06_ContributionMargin.html">Open Ch06 contribution margin</a></div>
+      <div class="sources"><a href="https://www.gsb.stanford.edu/insights/why-does-movie-popcorn-cost-so-much">Stanford GSB</a><a href="https://thehustle.co/why-is-movie-theater-popcorn-so-outrageously-expensive">The Hustle</a></div>
+    </article>
+
+    <article class="case inactive" id="apple">
+      <div class="case-head"><h2>4. Apple Ireland tax dispute</h2><span class="badge inactive">Inactive topic</span></div>
+      <p>This is a vivid transfer-pricing and related-party pricing example. It connects to the arm's-length idea, but transfer pricing is not currently in the active course path.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Transfer pricing, if restored</p></div>
+        <div class="mini"><strong>Class question</strong><p>How should related divisions price internal transactions?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch11_TransferPricing.html">Old local file</a></div>
+      <div class="sources"><a href="https://en.wikipedia.org/wiki/Apple%E2%80%93EU_tax_dispute">Apple-EU tax dispute</a><a href="https://www.theguardian.com/business/2024/sep/14/how-eu-landmark-apple-tax-ruling-gave-ireland-13bn-euros-it-didnt-want">Guardian 2024 ruling</a></div>
+    </article>
+
+    <article class="case medium" id="walmart-lvmh">
+      <div class="case-head"><h2>5. Walmart vs. LVMH DuPont analysis</h2><span class="badge medium">Good with verification</span></div>
+      <p>Walmart and LVMH can reach returns through different levers: Walmart relies on high turnover and thin margins, while luxury businesses rely more on high margins and slower turnover.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>ROI = margin x turnover</p></div>
+        <div class="mini"><strong>Class question</strong><p>Can two companies earn similar ROI in completely different ways?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch11_ROIDuPont.html">Open Ch11 ROI</a></div>
+      <div class="sources"><a href="https://ryanoconnellfinance.com/dupont-analysis/">DuPont example</a><a href="https://en.wikipedia.org/wiki/DuPont_analysis">DuPont analysis background</a></div>
+    </article>
+
+    <article class="case high" id="airlines">
+      <div class="case-head"><h2>6. Airlines selling the last empty seat</h2><span class="badge high">Best fit</span></div>
+      <p>Once a flight is scheduled, many costs are fixed or sunk. If a seat would otherwise fly empty, a low fare can still add contribution margin as long as incremental revenue exceeds incremental cost.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Fixed versus variable cost; special order with idle capacity</p></div>
+        <div class="mini"><strong>Class question</strong><p>Why sell a seat cheaply at the last minute?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch05_CostBehaviorDial.html">Open Ch05 cost behavior</a><a href="Ch07_SpecialOrderCapacity.html">Open Ch07 special order</a></div>
+      <div class="sources"><a href="https://www.globalair.com/articles/the-hidden-economics-of-empty-airline-seats/12308">GlobalAir</a></div>
+    </article>
+
+    <article class="case medium" id="printers">
+      <div class="case-head"><h2>7. HP printers and ink</h2><span class="badge medium">Useful</span></div>
+      <p>The razor-and-blades model helps students see that one product can be sold with little margin because the recurring consumable carries the contribution margin.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Contribution margin; product mix</p></div>
+        <div class="mini"><strong>Class question</strong><p>Which product is the real profit engine: printer or ink?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch06_ContributionMargin.html">Open Ch06 contribution margin</a></div>
+      <div class="sources"><a href="https://en.wikipedia.org/wiki/Razor_and_blades_model">Razor-and-blades model</a></div>
+    </article>
+
+    <article class="case high" id="amazon">
+      <div class="case-head"><h2>8. Amazon shareholder letter: cash flow over earnings</h2><span class="badge high">Best fit</span></div>
+      <p>Amazon's shareholder letter is a primary-source NPV teaching hook: value depends on future cash flows, not just accounting earnings. It is excellent for long-term investment decisions.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>NPV; future cash flows; investment decisions</p></div>
+        <div class="mini"><strong>Class question</strong><p>Why can earnings growth destroy value if cash flows are weak?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch08_NPV.html">Open Ch08 NPV</a></div>
+      <div class="sources"><a href="https://www.sec.gov/Archives/edgar/data/1018724/000119312505070440/dex991.htm">Amazon letter on SEC</a></div>
+    </article>
+
+    <article class="case high" id="netflix">
+      <div class="case-head"><h2>9. Netflix: profit versus cash burn</h2><span class="badge high">Best fit</span></div>
+      <p>Netflix is a strong cash-flow timing case: content cash can go out before the related expense fully appears in net income. That makes it useful for explaining why net income and operating cash flow differ.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Indirect operating cash flow</p></div>
+        <div class="mini"><strong>Class question</strong><p>How can a company report profit but still consume cash?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch12_IndirectOperatingCash.html">Open Ch12 indirect method</a></div>
+      <div class="sources"><a href="https://www.fool.com/investing/2020/05/31/netflix-free-cash-flow-debate-is-over-bulls-won.aspx">Motley Fool</a><a href="https://www.hollywoodreporter.com/news/general-news/will-netflix-finally-end-cash-burn-1250782/">Hollywood Reporter</a></div>
+    </article>
+
+    <article class="case medium" id="john-carter">
+      <div class="case-head"><h2>10. John Carter and movie break-even</h2><span class="badge medium">Good</span></div>
+      <p>A movie can need far more than its production budget in box-office revenue to break even because studios do not keep every ticket dollar and marketing costs matter.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Break-even; target profit</p></div>
+        <div class="mini"><strong>Class question</strong><p>Why is the break-even sales target higher than the production budget?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch06_BreakEven.html">Open Ch06 break-even</a></div>
+      <div class="sources"><a href="https://www.csmonitor.com/The-Culture/Latest-News-Wires/2012/0320/John-Carter-Movie-to-lose-200-million-among-biggest-Hollywood-flops-ever">Christian Science Monitor</a><a href="https://en.wikipedia.org/wiki/John_Carter_(film)">Film background</a></div>
+    </article>
+
+    <article class="case caution" id="boeing">
+      <div class="case-head"><h2>11. Boeing 737 MAX and favorable cost pressure</h2><span class="badge caution">Use carefully</span></div>
+      <p>This can show that a favorable cost result is not automatically good if it comes from cutting quality, safety, or engineering discipline. The case is powerful, but it is also heavy for an intro class.</p>
+      <div class="fit">
+        <div class="mini"><strong>Use with</strong><p>Favorable versus unfavorable variances</p></div>
+        <div class="mini"><strong>Class question</strong><p>When can a favorable cost variance be bad news?</p></div>
+      </div>
+      <div class="use-links"><a href="Ch10_FavorableUnfavorable.html">Open Ch10 variances</a></div>
+      <div class="sources"><a href="https://www.library.hbs.edu/working-knowledge/why-boeings-problems-with-737-max-began-more-than-25-years-ago">HBS Working Knowledge</a></div>
+    </article>
+  </section>
+
+  <footer>Prepared as an instructor case library for ACCT 2302. Cases are supplemental prompts and should be shortened before embedding in student animations.</footer>
+</main>
+</body>
+</html>

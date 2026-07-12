@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What Did This Custom Order Cost? Building a Job Cost Sheet</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#2a7ae0; --accent2:#4fa3f7;
+    --dm:#059669; --dl:#d97706; --moh:#9333ea;
+    --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1080px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.35rem,3.5vw,1.95rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:700px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .layout{ display:grid; grid-template-columns:1fr 1.15fr; gap:1rem; }
+  .docs h3,.sheet h3{ font-size:.9rem; margin-bottom:.5rem; color:#33445a; }
+  .doc{ border:2px solid var(--line); border-radius:10px; padding:.6rem .8rem; margin-bottom:.55rem; cursor:pointer; transition:all .15s; display:flex; justify-content:space-between; align-items:center; gap:.5rem; background:#fbfdff; }
+  .doc:hover:not(.used){ border-color:var(--accent); background:#eff6ff; transform:translateX(3px); }
+  .doc.used{ opacity:.45; cursor:default; }
+  .doc .d-t{ font-weight:800; font-size:.82rem; } .doc .d-s{ font-size:.7rem; color:var(--muted); }
+  .doc .d-amt{ font-weight:900; font-size:.85rem; white-space:nowrap; }
+  .doc.mat .d-amt{ color:var(--dm);} .doc.lab .d-amt{ color:var(--dl);} .doc.oh .d-amt{ color:var(--moh);}
+
+  .sheet{ background:#fffef7; border:2px solid #e7e0c4; border-radius:12px; padding:1rem; }
+  .sheet .job-head{ border-bottom:2px dashed #d8cfa6; padding-bottom:.5rem; margin-bottom:.5rem; }
+  .sheet .job-head b{ font-size:1rem; } .sheet .job-head span{ font-size:.76rem; color:var(--muted); }
+  table{ width:100%; border-collapse:collapse; font-size:.84rem; }
+  th,td{ text-align:left; padding:.35rem .3rem; } th{ font-size:.64rem; text-transform:uppercase; color:var(--muted); letter-spacing:.04em; border-bottom:1px solid #e3dcc0; }
+  td.r,th.r{ text-align:right; font-variant-numeric:tabular-nums; }
+  .row-dm td{ color:#065f46; } .row-dl td{ color:#92500a; } .row-moh td{ color:#6d28d9; }
+  tr.subtotal td{ border-top:1px solid #e3dcc0; font-weight:800; }
+  tr.total td{ border-top:2px solid #c9bf95; font-weight:900; font-size:.95rem; }
+  .emptyrow td{ color:#b9b08a; font-style:italic; }
+  .unitcost{ margin-top:.7rem; background:#eef6ff; border:1px solid #cfe0fb; border-radius:10px; padding:.6rem .8rem; text-align:center; display:none; }
+  .unitcost.show{ display:block; animation:pop .4s ease; } @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .unitcost .uc-v{ font-size:1.4rem; font-weight:900; color:var(--accent); }
+
+  .status{ min-height:30px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0 .2rem; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.5rem 1.05rem; border:none; border-radius:9px; font-weight:800; font-size:.82rem; color:#fff; cursor:pointer; }
+  .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .predict{ border:2px dashed var(--accent); background:#eff6ff; border-radius:12px; padding:.85rem 1rem; margin:.8rem 0; display:none; }
+  .predict.show{ display:block; animation:pop .3s ease; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.55rem; }
+  .pbtn{ padding:.4rem .9rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.82rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#dbeafe; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:720px){ .layout{ grid-template-columns:1fr; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 2 · Job Costing</div>
+  <h1>What Did This Custom Order Cost? 🪑</h1>
+  <p class="subtitle">Post each source document to Job 50 and watch total cost and unit cost build.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🪑 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Job</span><span class="fact-val">50: 4 dining tables</span></div>
+    <div class="fact"><span class="fact-label">Direct materials</span><span class="fact-val">$2,000 total</span></div>
+    <div class="fact"><span class="fact-label">Direct labor</span><span class="fact-val">80 hrs x $20</span></div>
+    <div class="fact"><span class="fact-label">Overhead rate</span><span class="fact-val">$25 per DLH</span></div>
+  </div>
+<div class="layout">
+    <div class="docs">
+      <h3>📄 Source documents (click to post)</h3>
+      <div class="doc mat" id="d0" onclick="post(0)"><div><div class="d-t">Materials Requisition #1</div><div class="d-s">Oak lumber</div></div><div class="d-amt">$1,400</div></div>
+      <div class="doc mat" id="d1" onclick="post(1)"><div><div class="d-t">Materials Requisition #2</div><div class="d-s">Hardware &amp; finish</div></div><div class="d-amt">$600</div></div>
+      <div class="doc lab" id="d2" onclick="post(2)"><div><div class="d-t">Time Ticket #1</div><div class="d-s">30 hrs × $20/hr</div></div><div class="d-amt">$600</div></div>
+      <div class="doc lab" id="d3" onclick="post(3)"><div><div class="d-t">Time Ticket #2</div><div class="d-s">50 hrs × $20/hr</div></div><div class="d-amt">$1,000</div></div>
+      <div class="doc oh"  id="d4" onclick="post(4)"><div><div class="d-t">Apply Overhead</div><div class="d-s">$25/DLH × 80 DLH</div></div><div class="d-amt">$2,000</div></div>
+      <p style="font-size:.74rem;color:var(--muted);margin-top:.6rem;line-height:1.4;">⏱ <strong>Allocation base:</strong> direct labor hours. Predetermined overhead rate = <strong>$25 per DLH</strong>, set at the start of the year.</p>
+    </div>
+
+    <div class="sheet">
+      <div class="job-head"><b>JOB COST SHEET — Job 50</b><br><span>Customer: Seaside Bistro · Output: 4 dining tables</span></div>
+      <table>
+        <thead><tr><th>Cost added</th><th>Type</th><th class="r">Amount</th></tr></thead>
+        <tbody id="sheetBody">
+          <tr class="emptyrow"><td colspan="3">No costs posted yet — click a source document.</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="subtotal"><td colspan="2">Direct Materials</td><td class="r" id="st-dm">$0</td></tr>
+          <tr class="subtotal"><td colspan="2">Direct Labor</td><td class="r" id="st-dl">$0</td></tr>
+          <tr class="subtotal"><td colspan="2">Applied Manufacturing Overhead</td><td class="r" id="st-moh">$0</td></tr>
+          <tr class="total"><td colspan="2">TOTAL JOB COST</td><td class="r" id="st-total">$0</td></tr>
+        </tfoot>
+      </table>
+      <div class="unitcost" id="unitcost">
+        Cost per table = Total job cost ÷ units = <strong>$5,600 ÷ 4</strong><div class="uc-v">$1,400 / table</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="predict" id="predict">
+    <div class="pq">🔮 Predict: overhead is applied at <strong>$25 per direct labor hour</strong>, and Job 50 used <strong>80 direct labor hours</strong>. How much overhead gets added?</div>
+    <div>
+      <button class="pbtn" onclick="predict('a')">$25</button>
+      <button class="pbtn" onclick="predict('b')">$1,600</button>
+      <button class="pbtn" onclick="predict('c')">$2,000</button>
+      <button class="pbtn" onclick="predict('d')">$5,600</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite">Post the source documents one at a time.</div>
+  <div class="controls"><button class="btn btn-gray" onclick="resetAll()">↺ Reset</button></div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>The overhead on a job cost sheet is <strong>applied</strong> (predetermined rate × actual base) — it is <em>not</em> the actual overhead bill. Actual overhead isn't known until later. Also: unit cost is <strong>total job cost ÷ number of units</strong>, not the cost of the last item added.</p>
+  </div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: Why "Forrest Gump" Showed a Loss</h3>
+    <p>A studio costs each film like a job. <i>Forrest Gump</i> took in about $678 million on a roughly $55 million budget, yet the studio's "net profit" books reported a loss &mdash; after a 15% studio-overhead charge and a 32%-of-gross distribution fee were piled onto the job.</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>The job</strong><p>Each film gathers its own direct costs plus a share of studio overhead, just like a job cost sheet.</p></div>
+      <div class="case-card"><strong>Overhead piled on</strong><p>A 15% overhead charge and a 32% distribution fee were layered on top of the film's direct costs.</p></div>
+      <div class="case-card"><strong>The result</strong><p>A blockbuster that "lost" money on paper. A judge in a related case called the method "unconscionable."</p></div>
+    </div>
+    <p><strong>Job-costing question:</strong> who benefits when a large overhead rate is allocated to a job?</p>
+    <p class="case-source">Source for discussion: <a href="https://pages.stern.nyu.edu/~wgreene/entertainmentandmedia/GumpAccounting.pdf" target="_blank" rel="noopener">NYU Stern, "Gump Accounting" (PDF)</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Which three cost categories accumulate on a job cost sheet?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Direct materials, direct labor, applied overhead</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Direct materials, selling, administrative</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Revenue, expenses, profit</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Raw materials, finished goods, COGS</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">A job uses 60 direct labor hours. The predetermined overhead rate is $25 per direct labor hour. Overhead applied to the job is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) $25</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) $1,500</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) $60</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Cannot tell until actual overhead is known</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">After a job's total cost is known, why might a company compute cost per unit?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) To reclassify selling costs as product costs</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) To understand the cost of each unit produced by the job</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) To avoid applying manufacturing overhead</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) To remove direct materials from the job cost sheet</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Job costing shows how a custom order gets a cost from materials, labor, and applied overhead.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Job cost sheet:</strong> The record that accumulates cost for one job.</li><li><strong>Direct materials:</strong> Materials traceable to the job.</li><li><strong>Direct labor:</strong> Labor traceable to the job.</li><li><strong>Applied overhead:</strong> Overhead assigned using a rate.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>The job cost sheet is the receipt for the job: it tells what the job used and what it cost.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Total job cost = direct materials + direct labor + applied overhead. Applied overhead = overhead rate x actual activity.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Accumulate</strong> direct materials, direct labor, and applied overhead on a job cost sheet.</li>
+    <li><strong>Apply</strong> manufacturing overhead using a predetermined rate × an allocation base.</li>
+    <li><strong>Compute</strong> a job's total cost and its cost per unit.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 2 · Job costing (Custom Furniture Co.)</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const docs=[
+  {label:"Materials Requisition #1 — Oak lumber", type:"Direct Materials", cat:"dm", amt:1400},
+  {label:"Materials Requisition #2 — Hardware &amp; finish", type:"Direct Materials", cat:"dm", amt:600},
+  {label:"Time Ticket #1 — 30 hrs × $20", type:"Direct Labor", cat:"dl", amt:600},
+  {label:"Time Ticket #2 — 50 hrs × $20", type:"Direct Labor", cat:"dl", amt:1000},
+  {label:"Applied Overhead — $25 × 80 DLH", type:"Applied Overhead", cat:"moh", amt:2000},
+];
+let totals={dm:0,dl:0,moh:0}, used=new Set(), predictShown=false, predicted=false;
+function fmt(n){ return '$'+n.toLocaleString(); }
+
+function refreshSheet(){
+  const body=$('sheetBody');
+  const rows=[...used].sort((a,b)=>a-b).map(i=>{
+    const d=docs[i];
+    return '<tr class="row-'+d.cat+'"><td>'+d.label+'</td><td>'+d.type+'</td><td class="r">'+fmt(d.amt)+'</td></tr>';
+  });
+  body.innerHTML = rows.length? rows.join('') : '<tr class="emptyrow"><td colspan="3">No costs posted yet — click a source document.</td></tr>';
+  $('st-dm').textContent=fmt(totals.dm); $('st-dl').textContent=fmt(totals.dl); $('st-moh').textContent=fmt(totals.moh);
+  $('st-total').textContent=fmt(totals.dm+totals.dl+totals.moh);
+}
+function post(i){
+  if(used.has(i)) return;
+  // overhead must be last
+  if(i===4 && (totals.dl===0)){ $('status').textContent='Post the labor time tickets first — overhead is based on direct labor hours.'; $('status').style.color='#dc2626'; return; }
+  const d=docs[i]; totals[d.cat]+=d.amt; used.add(i);
+  $('d'+i).classList.add('used');
+  refreshSheet();
+  $('status').innerHTML='✅ Posted: '+d.label+' → '+d.type+' '+fmt(d.amt); $('status').style.color='#059669';
+  // show predict right before overhead
+  if(totals.dl>0 && totals.dm>0 && !used.has(4) && !predictShown){ $('predict').classList.add('show'); predictShown=true; }
+  if(used.size===docs.length){ $('unitcost').classList.add('show'); $('status').innerHTML='🎉 Job complete! Total job cost <strong>$5,600</strong> → <strong>$1,400 per table</strong>.'; }
+}
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='c', fb)) return; predicted=true; if(ans==='c'){ fb.textContent='✅ Correct! $25 × 80 = $2,000 of overhead applied.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ Apply the rate to the base: $25 per hour × 80 hours = $2,000.'; fb.style.color='#dc2626'; }
+}
+function resetAll(){ resetPredictGates();
+  totals={dm:0,dl:0,moh:0}; used.clear(); predictShown=false; predicted=false;
+  docs.forEach((d,i)=>$('d'+i).classList.remove('used'));
+  $('unitcost').classList.remove('show'); $('predict').classList.remove('show'); $('pfb').textContent='';
+  refreshSheet(); $('status').textContent='Post the source documents one at a time.'; $('status').style.color='';
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'A',q2:'B',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: a job cost sheet accumulates the three manufacturing cost categories for one job: direct materials, direct labor, and manufacturing overhead.",
+    "err": "Not quite. Solution: job costing tracks the manufacturing cost of each job. The three buckets are direct materials, direct labor, and manufacturing overhead."
+  },
+  "q2": {
+    "ok": "Correct. Solution: Applied overhead = predetermined overhead rate x actual activity for the job. Here, $25 x 60 direct labor hours = $1,500.",
+    "err": "Not quite. Solution: multiply the overhead rate by the job activity: $25 per direct labor hour x 60 hours = $1,500 of overhead applied."
+  },
+  "q3": {
+    "ok": "Correct. Solution: once the job's total cost is known, managers often divide by the number of units in the job so they can understand the cost of each finished unit.",
+    "err": "Not quite. Solution: the unit cost does not change which costs belong on the job cost sheet. It simply spreads the completed job's total cost over the units produced."
+  }
+};
+function checkPractice(){
+  let score=0; ['q1','q2','q3'].forEach(q=>{
+    const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1));
+    card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true);
+    if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; }
+    const val=sel.value, cor=answers[q];
+    card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); });
+    if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; }
+  });
+  if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309';
+  $('retry').style.display= score<3?'':'none';
+}
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'){ for(let i=0;i<docs.length;i++){ if(!used.has(i)){ post(i); return; } } } });
+refreshSheet();
+</script>
+</body>
+</html>

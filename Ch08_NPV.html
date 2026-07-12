@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What Is a Future Dollar Worth Today? NPV vs. Payback</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#065f46; --accent2:#34d399; --in:#16a34a; --out:#dc2626; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:710px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .scenario{ text-align:center; font-size:.86rem; font-weight:700; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:10px; padding:.55rem .8rem; margin-bottom:.7rem; }
+  .rate-row{ display:flex; gap:.5rem; justify-content:center; align-items:center; margin-bottom:.7rem; font-size:.82rem; font-weight:800; color:var(--muted); }
+  .rate-btn{ padding:.35rem .9rem; border:2px solid var(--line); background:#fff; border-radius:20px; font-weight:800; font-size:.82rem; cursor:pointer; }
+  .rate-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  .timeline{ display:grid; grid-template-columns:repeat(5,1fr); gap:.4rem; align-items:end; min-height:210px; }
+  .yr{ text-align:center; }
+  .bartrack{ height:160px; display:flex; align-items:flex-end; justify-content:center; position:relative; }
+  .bar{ width:54px; border-radius:7px 7px 0 0; transition:height .8s cubic-bezier(.34,1.2,.64,1); display:flex; align-items:flex-start; justify-content:center; color:#fff; font-size:.66rem; font-weight:800; padding-top:.25rem; text-align:center; line-height:1.1; }
+  .bar.in{ background:linear-gradient(180deg,#4ade80,#16a34a);}
+  .bar.out{ width:76px; align-items:center; padding:.35rem .25rem; background:linear-gradient(180deg,#fb7185,#b91c1c); border:2px solid #991b1b; box-shadow:0 8px 18px rgba(185,28,28,.22); }
+  .outflow-text{ display:block; width:100%; }
+  .outflow-label{ display:block; color:#fee2e2; font-size:.56rem; font-weight:900; text-transform:uppercase; letter-spacing:0; margin-bottom:.15rem; }
+  .outflow-amount{ display:block; color:#fff; font-size:.9rem; font-weight:950; line-height:1.05; }
+  .ghost{ position:absolute; bottom:0; width:54px; border:2px dashed #86efac; border-radius:7px 7px 0 0; opacity:.6; }
+  .yr .yl{ font-size:.72rem; font-weight:800; margin-top:.35rem; } .yr .ya{ font-size:.7rem; color:var(--muted); }
+  .yr.outflow-year .yl{ color:#7f1d1d; }
+  .yr.outflow-year .ya{ color:#b91c1c; font-weight:900; }
+  .pvtag{ font-size:.64rem; font-weight:800; color:#047857; min-height:.9rem; }
+  .outflow-tag{ color:#b91c1c; font-size:.7rem; font-weight:900; }
+
+  .results{ display:grid; grid-template-columns:repeat(3,1fr); gap:.55rem; margin-top:1rem; }
+  .res{ border:2px solid var(--line); border-radius:10px; padding:.6rem .3rem; text-align:center; background:#f9fbfd; }
+  .res .rl{ font-size:.6rem; font-weight:900; text-transform:uppercase; color:var(--muted); } .res .rv{ font-size:1.05rem; font-weight:900; }
+  .res.npv{ border-width:3px; } .res.npv .rv{ font-size:1.2rem; }
+
+  .predict{ border:2px dashed var(--accent); background:#ecfdf5; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.85rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#d1fae5; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .status{ min-height:26px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .results{ grid-template-columns:1fr;} .bar,.ghost{ width:40px;} .bar.out{ width:64px; } .outflow-label{ font-size:.48rem; } .outflow-amount{ font-size:.72rem; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 8 · Capital Budgeting</div>
+  <h1>What Is a Future Dollar Worth Today? ⏳</h1>
+  <p class="subtitle">A food-truck owner can spend <strong>$30,000</strong> on a new espresso machine that brings in <strong>$10,000 a year for 4 years</strong>. Total cash back is $40,000 — but is it a good investment? Discount the future to find out.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">⏳ Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Initial investment</span><span class="fact-val">$30,000 today</span></div>
+    <div class="fact"><span class="fact-label">Cash inflows</span><span class="fact-val">$10,000 x 4 years</span></div>
+    <div class="fact"><span class="fact-label">Discount rate</span><span class="fact-val">10% selected</span></div>
+    <div class="fact"><span class="fact-label">Payback</span><span class="fact-val">3.0 years</span></div>
+  </div>
+<div class="scenario">Invest $30,000 today → receive $10,000 at the end of years 1, 2, 3, and 4.</div>
+
+  <div class="rate-row">
+    Discount rate:
+    <button class="rate-btn" onclick="setRate(8,this)">8%</button>
+    <button class="rate-btn active" id="rate10" onclick="setRate(10,this)">10%</button>
+    <button class="rate-btn" onclick="setRate(12,this)">12%</button>
+  </div>
+
+<div class="status" id="status" role="status" aria-live="polite">Discount the future cash flows to today.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="discountBtn" onclick="discount()">💸 Discount to Today's Value</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+<div class="timeline" id="timeline"></div>
+
+  <div class="results">
+    <div class="res"><div class="rl">PV of inflows</div><div class="rv" id="r-pv">$40,000</div></div>
+    <div class="res npv" id="npvBox"><div class="rl">Net Present Value</div><div class="rv" id="r-npv">—</div></div>
+    <div class="res"><div class="rl">Payback period</div><div class="rv" id="r-pb">3.0 yrs</div></div>
+  </div>
+
+  <div class="predict">
+    <div class="pq">🔮 Predict: a $10,000 payment received <strong>4 years from now</strong> is worth ____ than $10,000 today.</div>
+    <div>
+      <button class="pbtn" onclick="predict('less')">Less</button>
+      <button class="pbtn" onclick="predict('same')">The same</button>
+      <button class="pbtn" onclick="predict('more')">More</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div><div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>NPV discounts future cash flows before deciding. Payback is only a quick screen because it ignores time value and later cash flows.</p>
+  </div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: Amazon Bets on Cash Flow, Not Earnings</h3>
+    <p>In its 1997 shareholder letter, Amazon told investors it manages for long-term free cash flow, not quarterly accounting earnings &mdash; stating that a share is "worth only the present value of [its] future cash flows, not&hellip; future earnings." That is exactly the idea behind NPV.</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>Earnings are not value</strong><p>Accounting profit does not directly equal the cash a business produces.</p></div>
+      <div class="case-card"><strong>Discount the cash</strong><p>Value is the present value of the expected future cash flows.</p></div>
+      <div class="case-card"><strong>Long-term lens</strong><p>Amazon accepted weak early profits to build much larger future cash flows.</p></div>
+    </div>
+    <p><strong>NPV question:</strong> why can a company create value by giving up profit now for larger future cash flows?</p>
+    <p class="case-source">Source for discussion: <a href="https://www.sec.gov/Archives/edgar/data/1018724/000119312505070440/dex991.htm" target="_blank" rel="noopener">Amazon shareholder letter (SEC)</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">A project should be accepted when its net present value is:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Negative</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Zero or positive (positive = adds value)</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Equal to the investment</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Equal to total cash inflows</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">As the discount rate increases, the present value of a future cash flow:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Increases</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Decreases</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Stays the same</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Becomes negative</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">A weakness of the payback period method is that it:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Ignores the time value of money and later cash flows</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Is too hard to calculate</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Always rejects good projects</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Requires a discount rate</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>NPV translates future cash flows into today's dollars before making an investment decision.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Present value:</strong> What a future cash flow is worth today.</li><li><strong>Discount rate:</strong> Required return used to value future cash flows.</li><li><strong>NPV:</strong> PV of inflows minus the initial investment.</li><li><strong>Payback:</strong> Time needed to recover the investment.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>NPV is in dollars, so it directly estimates value added.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>NPV = present value of cash inflows - initial investment. Positive NPV means the project is expected to add value.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Explain</strong> why a future dollar is worth less than a dollar today.</li>
+    <li><strong>Calculate</strong> net present value (NPV) and decide accept/reject.</li>
+    <li><strong>Contrast</strong> NPV with the payback period.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 8 · NPV &amp; capital budgeting</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const INVEST=30000, CF=10000, YEARS=4, FULLH=150, NOMH=120; // px heights
+let rate=0.10, discounted=false, predicted=false;
+function fmt(n){ const s=Math.round(Math.abs(n)).toLocaleString(); return n<0?'−$'+s:'$'+s; }
+
+function buildTimeline(){
+  let h='<div class="yr outflow-year"><div class="bartrack"><div class="bar out" id="bar0" style="height:'+FULLH+'px"><span class="outflow-text"><span class="outflow-label">Cash outflow</span><span class="outflow-amount">'+fmt(-INVEST)+'</span></span></div></div><div class="yl">Year 0</div><div class="ya">Invest today</div><div class="pvtag outflow-tag">'+fmt(-INVEST)+' paid now</div></div>';
+  for(let y=1;y<=YEARS;y++){
+    h+='<div class="yr"><div class="bartrack"><div class="ghost" id="ghost'+y+'" style="height:'+NOMH+'px;display:none"></div><div class="bar in" id="bar'+y+'" style="height:'+NOMH+'px">$10,000</div></div><div class="yl">Year '+y+'</div><div class="ya">+$10,000</div><div class="pvtag" id="pv'+y+'"></div></div>';
+  }
+  $('timeline').innerHTML=h;
+}
+function pvFactor(y){ return 1/Math.pow(1+rate,y); }
+function computeNPV(){ let pv=0; for(let y=1;y<=YEARS;y++) pv+=CF*pvFactor(y); return {pv, npv:pv-INVEST}; }
+
+function discount(){
+  discounted=true;
+  let pvTotal=0;
+  for(let y=1;y<=YEARS;y++){
+    const pv=CF*pvFactor(y); pvTotal+=pv;
+    const h=Math.max(20, NOMH*pvFactor(y));
+    const g=$('ghost'+y); g.style.display='block';
+    const b=$('bar'+y); b.style.height=h+'px'; b.textContent=fmt(pv);
+    $('pv'+y).textContent='PV '+fmt(pv);
+  }
+  const npv=pvTotal-INVEST;
+  $('r-pv').textContent=fmt(pvTotal);
+  $('r-npv').textContent=fmt(npv);
+  const box=$('npvBox');
+  if(npv>0){ box.style.borderColor='#34d399'; box.style.background='#ecfdf5'; $('r-npv').style.color='#059669'; $('status').innerHTML='✅ NPV is positive ('+fmt(npv)+') at '+(rate*100)+'% — <strong>accept</strong> the machine.'; $('status').style.color='#059669'; }
+  else { box.style.borderColor='#f87171'; box.style.background='#fef2f2'; $('r-npv').style.color='#dc2626'; $('status').innerHTML='❌ NPV is negative ('+fmt(npv)+') at '+(rate*100)+'% — <strong>reject</strong>.'; $('status').style.color='#dc2626'; }
+  $('discountBtn').disabled=true;
+}
+function setRate(r,el){
+  rate=r/100;
+  document.querySelectorAll('.rate-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  // recompute if already discounted, else just update preview NPV hint
+  if(discounted){ discounted=false; $('discountBtn').disabled=false; resetBars(); }
+  $('status').textContent='Discount rate set to '+r+'%. Click “Discount to Today\'s Value”.'; $('status').style.color='';
+}
+function resetBars(){
+  for(let y=1;y<=YEARS;y++){ const b=$('bar'+y); b.style.height=NOMH+'px'; b.textContent='$10,000'; $('ghost'+y).style.display='none'; $('pv'+y).textContent=''; }
+  $('r-pv').textContent='$40,000'; $('r-npv').textContent='—'; const box=$('npvBox'); box.style.borderColor='var(--line)'; box.style.background='#f9fbfd'; $('r-npv').style.color='';
+}
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='less', fb)) return; predicted=true; if(ans==='less'){ fb.textContent='✅ Correct! Money in the future is worth LESS today because you lose the chance to invest it now. That\'s why we discount.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ It\'s worth LESS. A dollar today could be invested to grow, so a future dollar is discounted back to a smaller present value.'; fb.style.color='#dc2626'; }
+}
+function resetAll(){ resetPredictGates(); rate=0.10; discounted=false; predicted=false; document.querySelectorAll('.rate-btn').forEach(b=>b.classList.remove('active')); $('rate10').classList.add('active'); buildTimeline(); resetBars(); $('pfb').textContent=''; $('discountBtn').disabled=false; $('status').textContent='Discount the future cash flows to today.'; $('status').style.color=''; $('r-pb').textContent='3.0 yrs'; }
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'A'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: accept a project when NPV is positive because the present value of expected cash inflows exceeds the investment cost.",
+    "err": "Not quite. Solution: positive NPV means the project is expected to add value after considering the required return."
+  },
+  "q2": {
+    "ok": "Correct. Solution: as the discount rate increases, future cash flows are discounted more heavily, so their present value decreases.",
+    "err": "Not quite. Solution: a higher discount rate makes future dollars worth less today. Present value moves down when the rate goes up."
+  },
+  "q3": {
+    "ok": "Correct. Solution: payback focuses on how quickly the initial investment is recovered and ignores cash flows after the payback point.",
+    "err": "Not quite. Solution: the payback method is simple, but it can ignore important cash flows that occur after the investment has paid back."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'&&!discounted) discount(); });
+buildTimeline();
+</script>
+</body>
+</html>

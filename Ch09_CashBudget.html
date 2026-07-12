@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cash Budget Mechanics — When Cash Runs Short</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#9d174d;--accent2:#f472b6;--good:#059669;--bad:#dc2626;--warn:#b45309;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1020px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.9rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:740px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:780px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}.facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}.assumption{max-width:760px;margin:0 auto 1rem;background:#f0fdfa;border:1px solid #99f6e4;border-left:5px solid #14b8a6;border-radius:10px;padding:.65rem .85rem;color:#115e59;font-size:.84rem;font-weight:750}
+  .budget-map{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.55rem;margin:.85rem 0 1rem}
+  .budget-cell{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.65rem;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.06)}
+  .budget-k{display:block;font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);line-height:1.15}
+  .budget-v{display:block;font-size:.98rem;font-weight:900;color:var(--ink);line-height:1.25;margin-top:.2rem}
+  .budget-rule{grid-column:1/-1;border:1px solid #f9a8d4;background:#fdf2f8;border-left:5px solid var(--accent);border-radius:10px;padding:.65rem .8rem;text-align:center;font-size:.86rem;font-weight:850;color:#831843}
+  @media(max-width:820px){.budget-map{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:520px){.budget-map{grid-template-columns:1fr}}
+  .model{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:.6rem 0 1rem}.step-card{border:2px solid var(--line);border-radius:14px;background:#f9fbfd;padding:.85rem;opacity:.36;transform:translateY(8px);transition:all .35s}.step-card.on{opacity:1;transform:translateY(0);border-color:var(--accent2);background:#fff;box-shadow:0 6px 18px rgba(23,34,51,.10)}.step-k{font-size:.66rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.step-title{font-size:.98rem;font-weight:900;margin:.2rem 0;color:var(--accent)}.step-body{font-size:.86rem;color:#334155}.calc{font-weight:900;color:var(--ink);display:block;margin-top:.35rem}.result-good{color:var(--good);font-weight:900}.result-bad{color:var(--bad);font-weight:900}.range{display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;margin-top:.4rem}.range-box{border:1px solid var(--line);border-radius:10px;padding:.55rem;text-align:center;background:#f8fafc}.range-mid{font-weight:900;color:var(--muted)}
+  .predict{border:2px dashed var(--accent);background:#fff7ed;border-radius:12px;padding:.85rem 1rem;margin:.9rem 0}.predict .pq{font-weight:800;font-size:.9rem;margin-bottom:.5rem}.pbtn{padding:.45rem 1rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:800;font-size:.84rem;cursor:pointer;margin:.2rem}.pbtn:hover{background:#fff7ed}.pfb{margin-top:.5rem;font-size:.83rem;font-weight:750;min-height:1rem}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.7rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn:disabled{opacity:.4}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  
+  .decision-lab{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:.9rem;margin:.9rem 0;display:grid;gap:.75rem}
+  .decision-lab h3{font-size:.95rem;color:var(--accent);line-height:1.25}
+  .lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+  .lab-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .lab-card strong{display:block;font-size:.84rem;margin-bottom:.2rem}
+  .lab-card span,.lab-output,.lab-note{color:#334155;font-size:.84rem;line-height:1.45}
+  .lab-controls{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center}
+  .lab-btn{border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;padding:.42rem .75rem;font-weight:850;font-size:.8rem;cursor:pointer}
+  .lab-btn.active,.lab-btn:hover{background:var(--accent);color:#fff}
+  .lab-output{border-left:5px solid var(--accent);background:#fff;border-radius:8px;padding:.65rem .8rem;font-weight:750}
+  .table-scroll{overflow-x:auto}.table-scroll .lab-table{min-width:520px}
+  .lab-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:.82rem}
+  .lab-table th,.lab-table td{border:1px solid var(--line);padding:.45rem .55rem;text-align:left}
+  .lab-table th{background:#eef6f8;color:var(--ink)}
+  .lab-table td:last-child{text-align:right;font-weight:850}
+  .lab-slider{width:min(420px,100%);accent-color:var(--accent)}
+  @media(max-width:760px){.lab-grid{grid-template-columns:1fr}.lab-table{font-size:.78rem}}
+  @media(max-width:600px){
+    .table-scroll{overflow-x:visible}
+    .table-scroll .lab-table{min-width:0}
+    .lab-table,.lab-table tbody{display:block;width:100%;background:transparent}
+    .lab-table tr{display:grid;grid-template-columns:1fr;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;margin-bottom:.45rem}
+    .lab-table th,.lab-table td{display:block;width:100%;border:0;text-align:left!important;padding:.5rem .65rem}
+    .lab-table td{border-top:1px solid var(--line);font-weight:850}
+  }
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.model{grid-template-columns:1fr}.range{grid-template-columns:1fr}.range-mid{display:none}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="kicker">Chapter 9 · Cash Budget</div><h1>When Cash Runs Short</h1><p class="subtitle">Build a cash budget to see when a profitable company still needs to borrow.</p></header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views"><button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">💵 Animation</button><button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button></div>
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Beginning cash</span><span class="fact-val">$12,000</span></div>
+    <div class="fact"><span class="fact-label">Minimum cash</span><span class="fact-val">$10,000</span></div>
+    <div class="fact"><span class="fact-label">January collections</span><span class="fact-val">70% current month / 30% next month</span></div>
+    <div class="fact"><span class="fact-label">Cash payments</span><span class="fact-val">$42,000</span></div>
+  </div>
+  <div class="assumption">Assumption: this intro cash budget ignores interest on short-term borrowing and focuses on the borrowing trigger.</div>
+
+  <div class="budget-map" aria-label="January cash budget inputs">
+    <div class="budget-cell"><span class="budget-k">Start</span><span class="budget-v">$12,000</span></div>
+    <div class="budget-cell"><span class="budget-k">Add receipts</span><span class="budget-v">$28,000 + $9,000</span></div>
+    <div class="budget-cell"><span class="budget-k">Cash available</span><span class="budget-v">$49,000</span></div>
+    <div class="budget-cell"><span class="budget-k">Subtract payments</span><span class="budget-v">$42,000</span></div>
+    <div class="budget-cell"><span class="budget-k">Before financing</span><span class="budget-v">$7,000</span></div>
+    <div class="budget-rule">Borrow only if cash before financing is below the required $10,000 minimum.</div>
+  </div>
+
+<div class="status" id="status" role="status" aria-live="polite">Click “Next step” to build the cash budget from beginning cash through financing.</div>
+  <div class="controls"><button class="btn btn-accent" id="nextBtn" onclick="nextStep()">Next step</button><button class="btn btn-gray" onclick="resetAll()">↺ Reset</button></div>
+
+<div class="model">    <div class="step-card" id="s0"><div class="step-k">Step 1</div><div class="step-title">Start With Beginning Cash</div><div class="step-body">January begins with <span class="calc">$12,000</span>. The company wants at least $10,000 on hand after payments.</div></div>
+    <div class="step-card" id="s1"><div class="step-k">Step 2</div><div class="step-title">Add Cash Collections</div><div class="step-body">Collections are cash, not sales. January collects $28,000 from current sales plus $9,000 from December receivables. <span class="calc">Cash available = $49,000</span></div></div>
+    <div class="step-card" id="s2"><div class="step-k">Step 3</div><div class="step-title">Subtract Payments</div><div class="step-body">Materials, labor, overhead, and selling/admin payments total <span class="calc">$42,000</span>. Ending cash before financing is $7,000.</div></div>
+    <div class="step-card" id="s3"><div class="step-k">Step 4</div><div class="step-title">Borrow to the Minimum</div><div class="step-body">The minimum is $10,000, so the company borrows <span class="calc result-bad">$3,000</span>. Ending cash after financing is $10,000.</div></div></div>
+
+  <div class="decision-lab" aria-label="Cash budget month lab">
+    <h3>Month-By-Month Cash Budget Lab</h3>
+    <div class="lab-controls" role="group" aria-label="Choose cash budget month">
+      <button class="lab-btn" type="button" data-cash-month="0" onclick="showCashMonth(0)">January</button>
+      <button class="lab-btn" type="button" data-cash-month="1" onclick="showCashMonth(1)">February</button>
+      <button class="lab-btn" type="button" data-cash-month="2" onclick="showCashMonth(2)">March</button>
+    </div>
+    <div class="lab-grid">
+      <div class="lab-card"><strong id="cashMonthTitle">January cash budget</strong><span id="cashDecision">Borrowing decision will appear here.</span></div>
+      <div class="lab-card"><strong>Rule</strong><span>Cash before financing must be at least the minimum cash balance.</span></div>
+    </div>
+    <div class="table-scroll"><table class="lab-table" aria-label="Cash budget rows"><tbody id="cashRows"></tbody></table></div>
+  </div>
+  <div class="predict"><div class="pq">Predict: ending cash before financing is $7,000 and the minimum cash balance is $10,000. What must the company do?</div><div><button class="pbtn" onclick="predict('borrow')">Borrow $3,000</button><button class="pbtn" onclick="predict('none')">Do nothing</button><button class="pbtn" onclick="predict('repay')">Repay $3,000</button></div><div class="pfb" id="pfb" role="status" aria-live="polite"></div></div><div class="trap"><h3>Common Trap</h3><p>Profit is not cash. A company can show sales and still need to borrow if customers have not paid yet or cash payments arrive first.</p></div>
+</section>
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none"><div class="practice">    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Beginning cash $12,000 + collections $37,000 − payments $42,000 = ending cash before financing of:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) $7,000</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) $10,000</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) $37,000</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) $49,000</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">If cash before financing is below the minimum cash balance, what should the financing section show?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) No action, because the income statement will fix it</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Borrowing needed to bring cash back up to the minimum</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Product cost per unit</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) A sales mix variance</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">The cash budget is mainly designed to show:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Whether assets equal liabilities plus equity</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) When cash shortages or excesses are expected</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Product cost per unit</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) The sales mix break-even point</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div><div class="practice-foot"><button class="btn btn-accent" onclick="checkPractice()">Check My Work</button><div class="score" id="score" role="status" aria-live="polite"></div><button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button></div></div></section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>A company can be profitable on paper and still run short of cash.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Cash receipts:</strong> Cash expected to come in.</li><li><strong>Cash disbursements:</strong> Cash expected to be paid out.</li><li><strong>Minimum cash balance:</strong> Lowest cash level management wants to keep.</li><li><strong>Financing:</strong> Borrowing or repayment needed to manage cash.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>The cash budget is about timing: when cash comes in and when cash leaves.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Cash before financing = beginning cash + receipts - payments. Borrowing needed = minimum cash balance - cash before financing.</p></details>
+</section>
+
+<div class="lo"><h2>Learning Objectives</h2><ul><li><strong>Calculate</strong> cash collections and cash payments by month.</li><li><strong>Prepare</strong> a cash budget with beginning cash, cash receipts, cash disbursements, and ending cash.</li><li><strong>Identify</strong> when borrowing is needed to meet a minimum cash balance.</li></ul></div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 9 · Cash budgets</footer>
+</div>
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){try{const file=location.pathname.split('/').pop()||document.title;const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));}catch(err){}}
+function predictGate(key,correct,fb,hint){window.__predictTries=window.__predictTries||{};if(correct){window.__predictTries[key]=0;return true;}const tries=(window.__predictTries[key]||0)+1;window.__predictTries[key]=tries;if(tries===1){fb.textContent=hint||'Hint: use the highlighted numbers, then try once more.';fb.style.color='#b45309';return false;}return true;}
+function resetPredictGates(){window.__predictTries={};}
+const $=id=>document.getElementById(id);
+let step=-1,predicted=false;
+function nextStep(){if(step>=3)return;step++;$('s'+step).classList.add('on');$('status').innerHTML=["Beginning cash: $12,000.","Cash available after collections: $49,000.","Ending cash before financing: $7,000.","Borrow $3,000 to reach the $10,000 minimum."][step];$('status').style.color=step===3?'#059669':'';$('nextBtn').textContent=step>=3?'Complete':'Next step';$('nextBtn').disabled=step>=3;}
+function predict(ans){if(predicted)return;const fb=$('pfb');const ok=ans==='borrow';if(!predictGate('main',ok,fb,'Hint: compare ending cash before financing with the minimum required balance.'))return;predicted=true;if(ok){fb.textContent='Correct. $7,000 is $3,000 below the minimum, so the company borrows $3,000.';fb.style.color='#059669';}else{fb.textContent='It must borrow $3,000 to bring cash up to the $10,000 minimum.';fb.style.color='#dc2626';}}
+function resetAll(){resetPredictGates();step=-1;predicted=false;document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('on'));$('pfb').textContent='';$('status').textContent='Click “Next step” to build the cash budget from beginning cash through financing.';$('status').style.color='';$('nextBtn').textContent='Next step';$('nextBtn').disabled=false;}
+const cashMonths=[{month:'January',begin:12000,receipts:37000,payments:42000,min:10000},{month:'February',begin:10000,receipts:45000,payments:39000,min:10000},{month:'March',begin:16000,receipts:42000,payments:55000,min:10000}];
+function fmtCash(n){return n<0?'($'+Math.abs(Math.round(n)).toLocaleString()+')':'$'+Math.abs(Math.round(n)).toLocaleString();}
+function showCashMonth(i){const m=cashMonths[i];if(!m)return;const before=m.begin+m.receipts-m.payments;const borrow=Math.max(0,m.min-before);const end=before+borrow;document.querySelectorAll('[data-cash-month]').forEach((b,idx)=>b.classList.toggle('active',idx===i));$('cashMonthTitle').textContent=m.month+' cash budget';$('cashDecision').textContent=borrow>0?'Borrow '+fmtCash(borrow)+' to reach the minimum ending cash balance.':'No borrowing is needed; cash stays above the minimum.';$('cashRows').innerHTML=[['Beginning cash',m.begin],['Cash receipts',m.receipts],['Cash payments',-m.payments],['Cash before financing',before],['Minimum cash balance',m.min],['Borrowing needed',borrow],['Ending cash after financing',end]].map(r=>'<tr><th>'+r[0]+'</th><td>'+fmtCash(r[1])+'</td></tr>').join('');}
+showCashMonth(0);
+const answers={"q1":"A","q2":"B","q3":"B"};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: cash before financing = beginning cash + collections - payments = $12,000 + $37,000 - $42,000 = $7,000.",
+    "err": "Not quite. Solution: add cash receipts to beginning cash, then subtract cash payments. $12,000 + $37,000 - $42,000 = $7,000."
+  },
+  "q2": {
+    "ok": "Correct. Solution: the financing section explains how the company handles cash shortfalls or excess cash. If cash before financing is below the required minimum, the budget should show borrowing.",
+    "err": "Not quite. Solution: a cash shortfall is handled in the financing section. The company borrows enough to bring ending cash back to the minimum balance."
+  },
+  "q3": {
+    "ok": "Correct. Solution: the cash budget shows expected cash receipts, cash payments, and financing needs. Its main purpose is to reveal timing problems before they happen.",
+    "err": "Not quite. Solution: the cash budget focuses on cash timing, especially shortages and excess cash. It is not the same as the income statement."
+  }
+};
+function switchTab(t){const isAnim=t==='anim';$('tab-anim').classList.toggle('active',isAnim);$('tab-practice').classList.toggle('active',!isAnim);$('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');$('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');$('pane-anim').style.display=isAnim?'':'none';$('pane-practice').style.display=isAnim?'none':'';$('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');$('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');}
+function checkPractice(){let score=0;['q1','q2','q3'].forEach(q=>{const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));card.querySelectorAll('input').forEach(r=>r.disabled=true);if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}const val=sel.value,cor=answers[q];card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}else{fb.textContent=fbk[q].err;fb.className='q-fb err';}});if(score===3)markLessonComplete();const sb=$('score');sb.style.display='block';sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';sb.style.color=score===3?'#059669':'#b45309';$('retry').style.display=score<3?'':'none';}
+function retryPractice(){['q1','q2','q3'].forEach(q=>{const card=$(q);card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});$('fb'+q.slice(1)).textContent='';});$('score').style.display='none';$('retry').style.display='none';}
+</script>
+</body>
+</html>

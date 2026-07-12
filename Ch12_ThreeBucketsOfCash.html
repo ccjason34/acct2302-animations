@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Three Buckets of Cash — Operating, Investing, and Financing</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#92400e;--accent2:#b45309;--op:#16a34a;--inv:#2563eb;--fin:#9333ea;--good:#059669;--bad:#dc2626;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1020px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.85rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:730px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:760px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}.fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}.fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}.fact-val{display:block;font-size:1.05rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  .bucket-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin:.85rem 0 1rem}.guide-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.75rem;box-shadow:0 4px 14px rgba(23,34,51,.06)}.guide-card h3{font-size:.95rem;margin-bottom:.2rem}.guide-card p{font-size:.82rem;color:#334155;line-height:1.4}.guide-card.op h3{color:var(--op)}.guide-card.inv h3{color:var(--inv)}.guide-card.fin h3{color:var(--fin)}
+  .item-zone{min-height:70px;display:flex;align-items:center;justify-content:center;margin:.6rem 0}.tx-card{background:#fff;border:2px solid var(--line);border-radius:12px;padding:.7rem 1rem;box-shadow:var(--shadow);text-align:center;max-width:390px;font-weight:850}.tx-card.gone{opacity:0;transform:translateY(-12px) scale(.94);transition:all .35s}
+  .pick-row{display:flex;gap:.45rem;justify-content:center;flex-wrap:wrap}.pick-btn{padding:.5rem 1rem;border-radius:9px;font-weight:850;font-size:.85rem;cursor:pointer;border:2px solid;background:#fff}.pick-btn.op{border-color:var(--op);color:var(--op)}.pick-btn.inv{border-color:var(--inv);color:var(--inv)}.pick-btn.fin{border-color:var(--fin);color:var(--fin)}.pick-btn:hover{background:#f8fafc}
+  .verdict{min-height:26px;text-align:center;font-weight:850;font-size:.88rem;margin:.55rem 0}.buckets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin-top:.6rem}.bucket{border:2px solid;border-radius:14px;padding:.75rem;min-height:132px}.bucket.op{border-color:#bbf7d0;background:#f0fdf4}.bucket.inv{border-color:#bfdbfe;background:#eff6ff}.bucket.fin{border-color:#e9d5ff;background:#faf5ff}.bucket h3{font-size:.9rem}.bd{font-size:.68rem;color:var(--muted);margin:.1rem 0 .4rem}.chip{display:block;background:#fff;border:1px solid var(--line);border-radius:8px;padding:.35rem .5rem;margin-top:.35rem;font-size:.74rem;font-weight:750;animation:pop .25s ease}@keyframes pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.75rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}.support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}.support-head h2{font-size:1rem;line-height:1.25}.support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}.support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}.support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}.support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}.support-item ul{list-style:none;display:grid;gap:.35rem}.support-item strong{color:var(--ink)}.reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.bucket-guide,.buckets,.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 12 · Statement of Cash Flows</div>
+  <h1>Three Buckets of Cash</h1>
+  <p class="subtitle">The statement of cash flows sorts every cash flow into operating, investing, or financing. Practice the bucket decision before building the full statement.</p>
+</header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">💧 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Operating</span><span class="fact-val">Day-to-day business</span></div>
+    <div class="fact"><span class="fact-label">Investing</span><span class="fact-val">Long-term assets</span></div>
+    <div class="fact"><span class="fact-label">Financing</span><span class="fact-val">Owners and lenders</span></div>
+  </div>
+
+  <div class="bucket-guide" aria-label="Cash flow category guide">
+    <div class="guide-card op"><h3>Operating</h3><p>Cash from normal operations: collecting from customers, paying employees, paying suppliers, and paying interest under U.S. GAAP.</p></div>
+    <div class="guide-card inv"><h3>Investing</h3><p>Cash from buying or selling long-term assets, such as equipment, buildings, vehicles, or long-term investments.</p></div>
+    <div class="guide-card fin"><h3>Financing</h3><p>Cash from owners and lenders: issuing stock, paying dividends, borrowing principal, or repaying loan principal.</p></div>
+  </div>
+
+  <div class="item-zone" id="itemZone"></div>
+  <div class="pick-row" id="pickRow">
+    <button class="pick-btn op" onclick="sortItem('op')">Operating</button>
+    <button class="pick-btn inv" onclick="sortItem('inv')">Investing</button>
+    <button class="pick-btn fin" onclick="sortItem('fin')">Financing</button>
+  </div>
+  <div class="verdict" id="verdict" role="status" aria-live="polite">Choose the cash-flow bucket for this item.</div>
+
+  <div class="buckets">
+    <div class="bucket op"><h3>Operating</h3><div class="bd">Normal business activity</div><div id="binOp"></div></div>
+    <div class="bucket inv"><h3>Investing</h3><div class="bd">Long-term assets</div><div id="binInv"></div></div>
+    <div class="bucket fin"><h3>Financing</h3><div class="bd">Owners and lenders</div><div id="binFin"></div></div>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite">Sort all six cash-flow cards.</div>
+  <div class="controls"><button class="btn btn-gray" onclick="resetAll()">↺ Reset</button></div>
+
+  <div class="trap"><h3>Common Trap</h3><p>Do not classify based only on whether cash went up or down. Classify based on <strong>why</strong> the cash moved: operations, long-term assets, or financing from owners and lenders.</p></div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Cash collected from customers belongs in which section?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Operating</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Investing</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Financing</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Not reported</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Buying equipment for cash belongs in which section?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Operating</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Investing</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Financing</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Revenue</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Paying dividends to owners belongs in which section?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Operating</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Investing</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Financing</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Cost of goods sold</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot"><button class="btn btn-accent" onclick="checkPractice()">Check My Work</button><div class="score" id="score" role="status" aria-live="polite"></div><button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button></div>
+  </div>
+</section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>The three buckets explain where cash came from and where it went.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Operating:</strong> Day-to-day business cash flows.</li><li><strong>Investing:</strong> Long-term asset cash flows.</li><li><strong>Financing:</strong> Owner and lender cash flows.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Ask what caused the cash flow, then choose the matching bucket.</p></div>
+  </div>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Classify</strong> cash flows as operating, investing, or financing.</li>
+    <li><strong>Explain</strong> what each cash-flow bucket represents.</li>
+    <li><strong>Avoid</strong> classifying cash flows only by whether cash increased or decreased.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 12 · Statement of cash flows</footer>
+</div>
+
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){try{const file=location.pathname.split('/').pop()||document.title;const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));}catch(err){}}
+const $=id=>document.getElementById(id);
+const txs=[
+  {t:'Collected cash from customers',k:'op',note:'customer collections come from normal business operations.'},
+  {t:'Paid employees and suppliers',k:'op',note:'cash paid for daily business costs is operating.'},
+  {t:'Purchased new equipment',k:'inv',note:'buying a long-term asset is investing.'},
+  {t:'Sold an old delivery truck',k:'inv',note:'selling a long-term asset is investing.'},
+  {t:'Issued common stock for cash',k:'fin',note:'cash from owners is financing.'},
+  {t:'Paid dividends to shareholders',k:'fin',note:'cash paid to owners is financing.'}
+];
+const labels={op:'Operating',inv:'Investing',fin:'Financing'};
+let idx=0,waiting=false;
+function showItem(){
+  const zone=$('itemZone');
+  if(idx>=txs.length){zone.innerHTML='<div class="tx-card">All six cards are sorted.</div>';$('pickRow').style.display='none';$('status').textContent='Complete: the cash flows are sorted into the three sections.';$('status').style.color='#059669';return;}
+  zone.innerHTML='<div class="tx-card" id="curCard">'+txs[idx].t+'</div>';
+  waiting=false;
+}
+function sortItem(choice){
+  if(waiting||idx>=txs.length)return;
+  waiting=true;
+  const item=txs[idx],correct=choice===item.k,verdict=$('verdict');
+  verdict.innerHTML=(correct?'Correct: ':'It belongs in ')+'<strong>'+labels[item.k]+'</strong> because '+item.note;
+  verdict.style.color=correct?'#059669':'#dc2626';
+  const card=$('curCard');
+  if(card)card.classList.add('gone');
+  setTimeout(()=>{const bin=$('bin'+item.k.charAt(0).toUpperCase()+item.k.slice(1));const chip=document.createElement('span');chip.className='chip';chip.textContent=item.t;bin.appendChild(chip);idx++;showItem();},360);
+}
+function resetAll(){
+  idx=0;waiting=false;
+  $('binOp').innerHTML='';$('binInv').innerHTML='';$('binFin').innerHTML='';
+  $('pickRow').style.display='flex';
+  $('verdict').textContent='Choose the cash-flow bucket for this item.';$('verdict').style.color='';
+  $('status').textContent='Sort all six cash-flow cards.';$('status').style.color='';
+  showItem();
+}
+function switchTab(t){const isAnim=t==='anim';$('tab-anim').classList.toggle('active',isAnim);$('tab-practice').classList.toggle('active',!isAnim);$('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');$('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');$('pane-anim').style.display=isAnim?'':'none';$('pane-practice').style.display=isAnim?'none':'';$('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');$('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');}
+const answers={q1:'A',q2:'B',q3:'C'};
+const fbk={
+  q1:{ok:'Correct. Solution: cash collected from customers is part of normal business operations, so it is operating.',err:'Not quite. Solution: customer collections come from selling goods or services, so they are operating cash flows.'},
+  q2:{ok:'Correct. Solution: buying equipment is a long-term asset purchase, so it is investing.',err:'Not quite. Solution: equipment is a long-term asset. Cash paid to buy it belongs in investing activities.'},
+  q3:{ok:'Correct. Solution: dividends are cash paid to owners, so they are financing.',err:'Not quite. Solution: dividends are distributions to owners, so they belong in financing activities.'}
+};
+function checkPractice(){let score=0;['q1','q2','q3'].forEach(q=>{const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));card.querySelectorAll('input').forEach(r=>r.disabled=true);if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}const val=sel.value,cor=answers[q];card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}else{fb.textContent=fbk[q].err;fb.className='q-fb err';}});if(score===3)markLessonComplete();const sb=$('score');sb.style.display='block';sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';sb.style.color=score===3?'#059669':'#b45309';$('retry').style.display=score<3?'':'none';}
+function retryPractice(){['q1','q2','q3'].forEach(q=>{const card=$(q);card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});$('fb'+q.slice(1)).textContent='';});$('score').style.display='none';$('retry').style.display='none';}
+showItem();
+</script>
+</body>
+</html>

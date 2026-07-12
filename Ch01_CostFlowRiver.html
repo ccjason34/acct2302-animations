@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Cost Flow River — From Raw Materials to Cost of Goods Sold</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --paper:#f5f7fa; --panel:#fff;
+    --accent:#e05c2a; --accent2:#f08050;
+    --dm:#059669; --dl:#2563eb; --moh:#9333ea; --cogs:#dc2626;
+    --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+    background:linear-gradient(180deg,#f8fafc 0%,#edf3f7 100%);
+    color:var(--ink); min-height:100vh; line-height:1.5;
+  }
+  .wrap{ width:min(1080px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; padding:.5rem 0 .25rem; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.4rem,3.5vw,2rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:680px; margin:.55rem auto 0; }
+
+  /* Learning objectives */
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+
+  /* Tabs */
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  /* Account strip */
+  .accounts{ display:grid; grid-template-columns:repeat(4,1fr); gap:.6rem; margin-bottom:1rem; }
+  .acct{ border-radius:12px; padding:.7rem .5rem; text-align:center; border:2px solid var(--line); background:#f9fbfd; transition:transform .2s, box-shadow .3s, border-color .3s; }
+  .acct .a-label{ font-size:.64rem; font-weight:900; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .acct .a-sub{ font-size:.58rem; color:#9aa7b6; margin-bottom:.2rem; }
+  .acct .a-val{ font-size:1.15rem; font-weight:900; }
+  .acct.rm   { border-color:#bfe7d8; } .acct.rm .a-val{ color:var(--dm); }
+  .acct.wip  { border-color:#cdd9f7; } .acct.wip .a-val{ color:var(--dl); }
+  .acct.fg   { border-color:#e6d3f7; } .acct.fg .a-val{ color:var(--moh); }
+  .acct.cogs { border-color:#f7cccc; } .acct.cogs .a-val{ color:var(--cogs); }
+  .acct.bump{ transform:translateY(-4px) scale(1.03); box-shadow:0 10px 22px rgba(23,34,51,.16); }
+  .acct .tag{ display:inline-block; margin-top:.25rem; font-size:.54rem; font-weight:800; padding:.08rem .4rem; border-radius:6px; background:#eef3f7; color:#7c8a99; }
+  .acct.cogs .tag{ background:#fde8e8; color:#b91c1c; }
+
+  /* River scene */
+  .river{ position:relative; display:grid; grid-template-columns:1fr 1fr 1fr; gap:.4rem; align-items:end; min-height:240px; margin:.5rem 0 1rem; }
+  .tank{ position:relative; height:200px; border:3px solid #b9c6d4; border-top:none; border-radius:0 0 14px 14px; background:linear-gradient(180deg,#fbfdff,#eef3f7); overflow:hidden; }
+  .fill{ position:absolute; left:0; right:0; bottom:0; height:0%; transition:height .8s cubic-bezier(.34,1.4,.64,1); }
+  .fill.rm  { background:linear-gradient(180deg,#34d399,#059669); }
+  .fill.wip { background:linear-gradient(180deg,#60a5fa,#2563eb); }
+  .fill.fg  { background:linear-gradient(180deg,#c084fc,#9333ea); }
+  .tank-cap{ position:absolute; top:6px; left:0; right:0; text-align:center; font-size:.72rem; font-weight:900; color:#46556a; z-index:2; }
+  .tank-cap small{ display:block; font-weight:600; color:#8595a6; font-size:.6rem; }
+  .tank-val{ position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:.9rem; font-weight:900; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.45); z-index:2; }
+  .arrow{ position:absolute; top:50%; transform:translateY(-50%); font-size:1.4rem; color:#94a3b8; z-index:3; font-weight:900; }
+  .arrow.a1{ left:calc(33.33% - 10px); } .arrow.a2{ left:calc(66.66% - 10px); }
+  .feeder{ position:absolute; top:-2px; font-size:.6rem; font-weight:800; padding:.12rem .4rem; border-radius:6px; color:#fff; opacity:0; transition:opacity .3s, transform .5s; }
+  .feeder.show{ opacity:1; }
+  .feeder.dl { background:var(--dl); }
+  .feeder.moh{ background:var(--moh); }
+
+  /* moving money packet */
+  .packet{ position:absolute; z-index:5; font-size:.62rem; font-weight:900; color:#fff; padding:.12rem .45rem; border-radius:999px; box-shadow:0 3px 8px rgba(0,0,0,.3); pointer-events:none; }
+
+  /* status + log */
+  .status{ min-height:34px; text-align:center; font-weight:800; font-size:.92rem; padding:.3rem; transition:color .3s; }
+  .controls{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; margin:.4rem 0 .2rem; }
+  .btn{ padding:.5rem 1rem; border:none; border-radius:9px; font-size:.8rem; font-weight:800; cursor:pointer; color:#fff; transition:transform .1s, opacity .2s; }
+  .btn:active{ transform:scale(.95); } .btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); }
+  .btn-dm{ background:linear-gradient(135deg,#059669,#34d399);} .btn-dl{ background:linear-gradient(135deg,#1d4ed8,#60a5fa);} .btn-moh{ background:linear-gradient(135deg,#7e22ce,#c084fc);} .btn-cogs{ background:linear-gradient(135deg,#b91c1c,#f87171);} .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8); }
+
+  .log{ max-height:150px; overflow-y:auto; display:grid; gap:.35rem; margin-top:.6rem; }
+  .log-entry{ background:#f7fafc; border-left:3px solid var(--accent); border-radius:0 7px 7px 0; padding:.4rem .7rem; font-size:.78rem; animation:slideIn .35s ease; }
+  @keyframes slideIn{ from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }
+
+  /* predict */
+  .predict{ border:2px dashed var(--accent); background:#fff6f1; border-radius:12px; padding:.85rem 1rem; margin:.6rem 0; display:none; }
+  .predict.show{ display:block; animation:slideIn .3s ease; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.55rem; }
+  .predict .popts{ display:flex; flex-wrap:wrap; gap:.45rem; }
+  .pbtn{ padding:.4rem .9rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.8rem; cursor:pointer; }
+  .pbtn:hover{ background:#ffe9df; }
+  .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  /* trap callout */
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  /* Practice */
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; transition:border-color .15s, background .15s; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; }
+  .opt input{ accent-color:var(--accent); width:15px; height:15px; }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; }
+  .score{ font-size:1.05rem; font-weight:900; display:none; }
+
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .accounts{ grid-template-columns:repeat(2,1fr);} .river{ grid-template-columns:1fr; min-height:0; gap:.8rem;} .tank{ height:130px;} .arrow{ display:none;} }
+
+  /* Transfer emphasis: show the amount leaving one account and entering another */
+  .acct{ position:relative; overflow:visible; }
+  .delta-badge{ position:absolute; top:-8px; left:50%; z-index:25; font-weight:900; font-size:.9rem; padding:.1rem .55rem; border-radius:999px; pointer-events:none; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,.22); animation:deltaFloat 1.5s ease forwards; }
+  .delta-badge.neg{ background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+  .delta-badge.pos{ background:#dcfce7; color:#15803d; border:1px solid #86efac; }
+  @keyframes deltaFloat{
+    0%{ opacity:0; transform:translate(-50%,10px) scale(.8); }
+    18%{ opacity:1; transform:translate(-50%,0) scale(1.08); }
+    78%{ opacity:1; transform:translate(-50%,0) scale(1); }
+    100%{ opacity:0; transform:translate(-50%,-26px) scale(1); }
+  }
+  .arrow.pulse{ animation:arrowPulse .85s ease 2; }
+  @keyframes arrowPulse{
+    0%,100%{ transform:translateY(-50%) scale(1); color:#94a3b8; }
+    50%{ transform:translateY(-50%) scale(1.7); color:#16a34a; }
+  }
+  .fill.flash::after{ content:""; position:absolute; inset:0; background:#fff; opacity:.5; animation:fillFlash .7s ease forwards; }
+  @keyframes fillFlash{ to{ opacity:0; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 1 · Cost Flows in a Manufacturer</div>
+  <h1>The Cost Flow River 🏭</h1>
+  <p class="subtitle">Follow a sportswear maker's costs as they flow through three inventory "reservoirs" and finally become an expense. Click each step in order to advance.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🏭 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<!-- ANIMATION -->
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false" aria-label="Cost flow animation">
+
+
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Raw materials</span><span class="fact-val">$50,000 bought</span></div>
+    <div class="fact"><span class="fact-label">Direct labor</span><span class="fact-val">$30,000 added</span></div>
+    <div class="fact"><span class="fact-label">Overhead</span><span class="fact-val">$20,000 applied</span></div>
+    <div class="fact"><span class="fact-label">Sold goods</span><span class="fact-val">$70,000 to COGS</span></div>
+  </div>
+<div class="status" id="status" role="status" aria-live="polite">Step 1: buy the raw materials to get started.</div>
+<div class="controls">
+    <button class="btn btn-dm"    id="b0" onclick="step(0)">1 · Buy Raw Materials $50,000</button>
+    <button class="btn btn-dm"    id="b1" onclick="step(1)" disabled>2 · Use Materials in Production $40,000</button>
+    <button class="btn btn-dl"    id="b2" onclick="step(2)" disabled>3 · Add Direct Labor $30,000</button>
+    <button class="btn btn-moh"   id="b3" onclick="step(3)" disabled>4 · Apply Overhead $20,000</button>
+    <button class="btn btn-accent" id="b4" onclick="step(4)" disabled>5 · Finish Goods $75,000</button>
+    <button class="btn btn-cogs"  id="b5" onclick="step(5)" disabled>6 · Sell Goods $70,000</button>
+    <button class="btn btn-gray"  onclick="resetAll()">↺ Reset</button>
+  </div>
+
+<div class="accounts">
+    <div class="acct rm" id="acct-rm"><div class="a-label">Raw Materials</div><div class="a-sub">Inventory · Asset</div><div class="a-val" id="v-rm">$0</div><span class="tag">Balance Sheet</span></div>
+    <div class="acct wip" id="acct-wip"><div class="a-label">Work in Process</div><div class="a-sub">Inventory · Asset</div><div class="a-val" id="v-wip">$0</div><span class="tag">Balance Sheet</span></div>
+    <div class="acct fg" id="acct-fg"><div class="a-label">Finished Goods</div><div class="a-sub">Inventory · Asset</div><div class="a-val" id="v-fg">$0</div><span class="tag">Balance Sheet</span></div>
+    <div class="acct cogs" id="acct-cogs"><div class="a-label">Cost of Goods Sold</div><div class="a-sub">Expense</div><div class="a-val" id="v-cogs">$0</div><span class="tag">Income Statement</span></div>
+  </div>
+
+  <div class="river" id="river">
+    <div class="tank">
+      <div class="tank-cap">RAW MATERIALS<small>fabric, thread, zippers</small></div>
+      <div class="fill rm" id="fill-rm"></div>
+      <div class="tank-val" id="tv-rm"></div>
+    </div>
+    <div class="tank">
+      <div class="tank-cap">WORK IN PROCESS<small>+ DL + Overhead</small></div>
+      <div class="fill wip" id="fill-wip"></div>
+      <div class="tank-val" id="tv-wip"></div>
+      <div class="feeder dl"  id="feed-dl"  style="left:8%;">＋ Direct Labor</div>
+      <div class="feeder moh" id="feed-moh" style="right:8%;">＋ Overhead</div>
+    </div>
+    <div class="tank">
+      <div class="tank-cap">FINISHED GOODS<small>ready to sell</small></div>
+      <div class="fill fg" id="fill-fg"></div>
+      <div class="tank-val" id="tv-fg"></div>
+    </div>
+    <div class="arrow a1">➜</div>
+    <div class="arrow a2">➜</div>
+  </div>
+
+  
+
+  <div class="predict" id="predict">
+    <div class="pq">🔮 Predict: A worker is paid $30,000 to sew hoodies. Which account does that <em>direct labor</em> cost flow into first?</div>
+    <div class="popts">
+      <button class="pbtn" onclick="predict('rm')">Raw Materials</button>
+      <button class="pbtn" onclick="predict('wip')">Work in Process</button>
+      <button class="pbtn" onclick="predict('cogs')">Cost of Goods Sold</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  
+
+  <div class="log" id="log"></div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p><strong>Product costs</strong> flow through inventory first. <strong>Period costs</strong> skip inventory and are expensed right away. A product cost becomes Cost of Goods Sold only when the item is sold.</p>
+  </div>
+</section>
+
+<!-- PRACTICE -->
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none" aria-label="Practice">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">In a manufacturer, which account do direct materials, direct labor, and manufacturing overhead all flow into?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Raw Materials Inventory</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Work in Process Inventory</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Finished Goods Inventory</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Cost of Goods Sold</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">A finished hoodie sits in the warehouse, unsold. Where does its cost appear?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) As Cost of Goods Sold on the income statement</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) As Finished Goods Inventory on the balance sheet</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) As a period expense</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) It is not recorded until next year</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Which of these is a <em>period</em> cost that never enters the inventory reservoirs?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Fabric used to make hoodies</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Wages of the sewing-machine operators</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Advertising for the new hoodie line</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Factory electricity</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>This is the basic map for where manufacturing costs go before they become expense on the income statement.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Raw materials:</strong> Materials waiting to be used in production.</li><li><strong>WIP:</strong> Partly finished units.</li><li><strong>Finished goods:</strong> Completed units not sold yet.</li><li><strong>COGS:</strong> Product cost expensed when goods are sold.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Do not expense product costs immediately. They become expense when the product is sold.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Beginning inventory + additions - ending inventory = cost transferred out. Costs move from raw materials to WIP to finished goods to COGS.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Identify</strong> the three inventory accounts costs flow through: Raw Materials → Work in Process → Finished Goods.</li>
+    <li><strong>Trace</strong> direct materials, direct labor, and manufacturing overhead into Work in Process.</li>
+    <li><strong>Explain</strong> why a product cost becomes Cost of Goods Sold only when the product is sold.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 1 · Cost terms &amp; cost flows</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const SCALE = 100000; // tank full at $100k
+let state = { rm:0, wip:0, fg:0, cogs:0 };
+let done = new Set();
+const $ = id => document.getElementById(id);
+
+const steps = [
+  { id:0, label:"Buy raw materials $50,000", msg:"Bought $50,000 of fabric, thread &amp; zippers → Raw Materials Inventory.", apply(){ state.rm += 50000; } , bumps:['rm'] },
+  { id:1, label:"Use materials $40,000", msg:"Requisitioned $40,000 of direct materials into production → flows Raw Materials ➜ Work in Process.", apply(){ state.rm -= 40000; state.wip += 40000; }, bumps:['rm','wip'], packet:{from:0,to:1,text:'$40,000 materials',color:'#059669',amount:40000} },
+  { id:2, label:"Add direct labor $30,000", msg:"$30,000 of sewing-line wages (direct labor) added straight into Work in Process.", apply(){ state.wip += 30000; }, bumps:['wip'], feeder:'dl' },
+  { id:3, label:"Apply overhead $20,000", msg:"$20,000 of manufacturing overhead (factory rent, utilities, supervision) applied to Work in Process.", apply(){ state.wip += 20000; }, bumps:['wip'], feeder:'moh' },
+  { id:4, label:"Finish goods $75,000", msg:"$75,000 of goods completed (Cost of Goods Manufactured) → flows Work in Process ➜ Finished Goods.", apply(){ state.wip -= 75000; state.fg += 75000; }, bumps:['wip','fg'], packet:{from:1,to:2,text:'$75,000 completed',color:'#9333ea',amount:75000} },
+  { id:5, label:"Sell goods $70,000", msg:"$70,000 of hoodies sold → flows Finished Goods ➜ Cost of Goods Sold (now an expense on the income statement).", apply(){ state.fg -= 70000; state.cogs += 70000; }, bumps:['fg','cogs'], packet:{from:2,to:3,text:'$70,000 sold',color:'#dc2626',amount:70000} },
+];
+
+function fmt(n){ return '$' + n.toLocaleString(); }
+
+function render(){
+  $('v-rm').textContent = fmt(state.rm);
+  $('v-wip').textContent = fmt(state.wip);
+  $('v-fg').textContent = fmt(state.fg);
+  $('v-cogs').textContent = fmt(state.cogs);
+  const pct = v => Math.max(0, Math.min(100, v/SCALE*100));
+  $('fill-rm').style.height = pct(state.rm)+'%';
+  $('fill-wip').style.height = pct(state.wip)+'%';
+  $('fill-fg').style.height = pct(state.fg)+'%';
+  $('tv-rm').textContent = state.rm? fmt(state.rm):'';
+  $('tv-wip').textContent = state.wip? fmt(state.wip):'';
+  $('tv-fg').textContent = state.fg? fmt(state.fg):'';
+}
+
+function bump(key){
+  const el = $('acct-'+key);
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  setTimeout(()=>el.classList.remove('bump'), 450);
+}
+
+function flyPacket(p){
+  const river = $('river');
+  const r = river.getBoundingClientRect();
+  const colW = r.width/3;
+  const xs = [colW*0.5, colW*1.5, colW*2.5, r.width-30];
+  const packet = document.createElement('div');
+  packet.className = 'packet';
+  packet.textContent = p.text;
+  packet.style.background = p.color;
+  packet.style.left = (xs[p.from]-20)+'px';
+  packet.style.top = '30px';
+  river.appendChild(packet);
+  requestAnimationFrame(()=>{
+    packet.style.transition = 'left .8s ease, top .8s ease';
+    packet.style.left = (xs[p.to]-20)+'px';
+    packet.style.top = '120px';
+  });
+  setTimeout(()=>packet.remove(), 950);
+}
+
+// Map tank/packet index → account-card key
+const ACCT_OF = ['rm','wip','fg','cogs'];
+
+// Float a "−$X" / "+$X" badge over an account card so the transfer amount is explicit
+function showDelta(acctKey, amount, sign){
+  const card = $('acct-'+acctKey);
+  if(!card) return;
+  const b = document.createElement('div');
+  b.className = 'delta-badge ' + (sign<0 ? 'neg' : 'pos');
+  b.textContent = (sign<0 ? '−' : '+') + '$' + Math.abs(amount).toLocaleString();
+  card.appendChild(b);
+  setTimeout(()=>b.remove(), 1550);
+}
+
+// Pulse the arrow that sits between the source tank and the next one
+function pulseArrow(from){
+  const sel = from===0 ? '.arrow.a1' : from===1 ? '.arrow.a2' : null;
+  if(!sel) return;
+  const a = document.querySelector(sel);
+  if(!a) return;
+  a.classList.remove('pulse'); void a.offsetWidth; a.classList.add('pulse');
+  setTimeout(()=>a.classList.remove('pulse'), 1800);
+}
+
+// Briefly flash the destination tank's liquid as it rises
+function flashFill(acctKey){
+  const f = $('fill-'+acctKey);
+  if(!f) return;
+  f.classList.remove('flash'); void f.offsetWidth; f.classList.add('flash');
+  setTimeout(()=>f.classList.remove('flash'), 750);
+}
+
+function addLog(msg){
+  const d = document.createElement('div');
+  d.className = 'log-entry';
+  d.innerHTML = msg;
+  $('log').prepend(d);
+}
+
+function step(i){
+  if(done.has(i)) return;
+  // enforce order
+  for(let k=0;k<i;k++){ if(!done.has(k)){ flash("Do the steps in order — start with step "+(k+1)+"."); return; } }
+  const s = steps[i];
+  s.apply();
+  done.add(i);
+  render();
+  s.bumps.forEach(bump);
+  if(s.packet){
+    flyPacket(s.packet);
+    pulseArrow(s.packet.from);
+    showDelta(ACCT_OF[s.packet.from], s.packet.amount, -1);   // amount leaving the source
+    showDelta(ACCT_OF[s.packet.to],   s.packet.amount, +1);   // amount entering the destination
+    flashFill(ACCT_OF[s.packet.to]);
+  }
+  if(s.feeder){ const f=$('feed-'+s.feeder); f.classList.add('show'); }
+  $('status').innerHTML = '✅ ' + s.msg;
+  $('status').style.color = '#059669';
+  addLog(s.msg);
+  $('b'+i).disabled = true;
+  if(i+1<steps.length) $('b'+(i+1)).disabled = false;
+  // show predict before step 2 (direct labor) once
+  if(i===1 && !predictShown){ $('predict').classList.add('show'); predictShown=true; }
+  if(i===5){ $('status').innerHTML = '🎉 Full journey complete! The $70,000 that was sold is now an <strong>expense</strong>; the rest is still <strong>inventory</strong> on the balance sheet.'; }
+}
+
+function flash(t){ $('status').textContent = t; $('status').style.color = '#dc2626'; }
+
+let predictShown=false, predicted=false;
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='wip', fb)) return; predicted=true; if(ans==='wip'){ fb.textContent='✅ Correct! Direct labor flows straight into Work in Process — it is a product cost being added to the goods in production.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ Not quite. Direct labor is a product cost that goes directly into Work in Process (not Raw Materials, and not COGS until the goods are sold).'; fb.style.color='#dc2626'; }
+}
+
+function resetAll(){ resetPredictGates();
+  state={rm:0,wip:0,fg:0,cogs:0}; done.clear(); predictShown=false; predicted=false;
+  render();
+  ['feed-dl','feed-moh'].forEach(id=>$(id).classList.remove('show'));
+  $('predict').classList.remove('show'); $('pfb').textContent='';
+  $('log').innerHTML=''; $('status').textContent='Step 1: buy the raw materials to get started.'; $('status').style.color='';
+  steps.forEach((s,i)=> $('b'+i).disabled = i!==0);
+}
+
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+
+// Practice
+const answers={q1:'B',q2:'B',q3:'C'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: direct materials, direct labor, and manufacturing overhead are product costs while goods are being made, so they first accumulate in Work in Process Inventory. After the goods are finished, the cost moves to Finished Goods, then to Cost of Goods Sold when sold.",
+    "err": "Not quite. Solution: the three manufacturing costs first flow into Work in Process Inventory because the product is still being made. They do not become Finished Goods or Cost of Goods Sold until later in the cost flow."
+  },
+  "q2": {
+    "ok": "Correct. Solution: a completed but unsold hoodie is still an asset, so its cost sits in Finished Goods Inventory. The cost becomes Cost of Goods Sold only when the hoodie is sold.",
+    "err": "Not quite. Solution: finished but unsold products are reported in Finished Goods Inventory. Cost of Goods Sold is used only after the sale occurs."
+  },
+  "q3": {
+    "ok": "Correct. Solution: period costs, such as selling or administrative costs, are expensed in the period incurred. They never enter the Raw Materials, Work in Process, or Finished Goods inventory reservoirs.",
+    "err": "Not quite. Solution: period costs are not product costs. Selling and administrative costs are expensed immediately rather than being stored in inventory."
+  }
+};
+function checkPractice(){
+  let score=0;
+  ['q1','q2','q3'].forEach(q=>{
+    const card=$(q); const sel=card.querySelector('input[name="'+q+'"]:checked'); const fb=$('fb'+q.slice(1));
+    card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true);
+    if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; }
+    const val=sel.value, cor=answers[q];
+    card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); });
+    if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; }
+  });
+  if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block';
+  sb.textContent = score===3 ? '🎉 Perfect! 3 / 3 — you understand how costs flow.' : 'Practice result: '+score+' / 3 — review the feedback and try again.';
+  sb.style.color = score===3 ? '#059669' : '#b45309';
+  $('retry').style.display = score<3 ? '' : 'none';
+}
+function retryPractice(){
+  ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; });
+  $('score').style.display='none'; $('retry').style.display='none';
+}
+
+// keyboard
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,button,textarea')) return;
+  if(e.key==='ArrowRight'){ for(let i=0;i<steps.length;i++){ if(!done.has(i)){ step(i); return; } } }
+});
+
+render();
+</script>
+</body>
+</html>

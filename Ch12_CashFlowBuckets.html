@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Direct vs. Indirect Method — Two Roads to Operating Cash</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#92400e;--accent2:#b45309;--direct:#0f766e;--indirect:#6d28d9;--good:#059669;--bad:#dc2626;--warn:#b45309;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1080px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.9rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:760px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:780px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}.fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}.fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}.fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  .method-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:.85rem 0 1rem}.method-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.8rem;box-shadow:0 4px 14px rgba(23,34,51,.06)}.method-card.direct{border-top:4px solid var(--direct)}.method-card.indirect{border-top:4px solid var(--indirect)}.method-card h3{font-size:.95rem;margin-bottom:.3rem}.method-card.direct h3{color:var(--direct)}.method-card.indirect h3{color:var(--indirect)}.method-card p{font-size:.84rem;color:#334155;line-height:1.42}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.7rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn:disabled{opacity:.42}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8);color:#fff}
+  .comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem}.statement{min-width:0;border:2px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.statement.direct{border-color:#99f6e4}.statement.indirect{border-color:#ddd6fe}.statement-head{padding:.8rem .9rem;border-bottom:1px solid var(--line)}.statement.direct .statement-head{background:#ecfdf5}.statement.indirect .statement-head{background:#f5f3ff}.statement-head h3{font-size:1rem}.statement.direct h3{color:var(--direct)}.statement.indirect h3{color:var(--indirect)}.statement-head p{font-size:.78rem;color:var(--muted);margin-top:.15rem}
+  .line-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.7rem;align-items:center;padding:.58rem .8rem;border-top:1px solid var(--line);opacity:.28;transition:opacity .35s,background .35s}.line-row:first-child{border-top:none}.line-row.on{opacity:1}.line-row.reveal{background:#fffbeb}.line-row.total{font-weight:900;border-top:2px solid currentColor;opacity:.35}.line-row.total.on{opacity:1}.line-row .name{font-size:.86rem;color:#334155}.line-row .amt{font-size:.88rem;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.line-row.add .amt{color:var(--good)}.line-row.sub .amt{color:var(--bad)}.statement.direct .line-row.total{color:var(--direct)}.statement.indirect .line-row.total{color:var(--indirect)}
+  .compare-box{display:none;margin-top:1rem;border:2px solid var(--accent);background:#fffbeb;border-radius:12px;padding:.9rem 1rem;text-align:center}.compare-box.show{display:block;animation:rise .3s ease}.compare-box h3{font-size:1rem;color:var(--accent);margin-bottom:.25rem}.compare-box p{font-size:.88rem;color:#4b5563}.compare-box strong{color:var(--ink)}@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .predict{border:2px dashed var(--accent);background:#fff7ed;border-radius:12px;padding:.85rem 1rem;margin:.9rem 0}.predict .pq{font-weight:800;font-size:.9rem;margin-bottom:.5rem}.pbtn{padding:.45rem 1rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:800;font-size:.84rem;cursor:pointer;margin:.2rem}.pbtn:hover{background:#fff7ed}.pfb{margin-top:.5rem;font-size:.83rem;font-weight:750;min-height:1rem}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}.support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}.support-head h2{font-size:1rem;line-height:1.25}.support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}.support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}.support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}.support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}.support-item ul{list-style:none;display:grid;gap:.35rem}.support-item strong{color:var(--ink)}.math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}.math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}.math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}.reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}.reference-chip:hover{background:#f8fafc}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}.method-map,.comparison,.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}.line-row{grid-template-columns:1fr;gap:.2rem}.line-row .amt{text-align:left}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 12 · Statement of Cash Flows</div>
+  <h1>Direct vs. Indirect: Two Roads to Operating Cash</h1>
+  <p class="subtitle">Both methods report the same net cash provided by operating activities. The direct method lists cash receipts and cash payments; the indirect method starts with net income and explains why income is not cash.</p>
+</header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">💵 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Direct receipts</span><span class="fact-val">$90,000</span></div>
+    <div class="fact"><span class="fact-label">Direct payments</span><span class="fact-val">$30,000</span></div>
+    <div class="fact"><span class="fact-label">Net income</span><span class="fact-val">$50,000</span></div>
+    <div class="fact"><span class="fact-label">Operating cash</span><span class="fact-val">$60,000</span></div>
+  </div>
+
+  <div class="method-map" aria-label="Direct and indirect method overview">
+    <div class="method-card direct">
+      <h3>Direct method</h3>
+      <p>Shows the operating cash inflows and outflows directly: cash collected from customers minus cash paid for operating costs.</p>
+    </div>
+    <div class="method-card indirect">
+      <h3>Indirect method</h3>
+      <p>Starts with accrual-basis net income, then adjusts for noncash expenses and changes in working-capital accounts.</p>
+    </div>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite">Click “Show direct method” to start with actual operating cash receipts and payments.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="directBtn" onclick="showDirect()">1 · Show direct method</button>
+    <button class="btn btn-accent" id="indirectBtn" onclick="showIndirect()" disabled>2 · Show indirect method</button>
+    <button class="btn btn-accent" id="compareBtn" onclick="showCompare()" disabled>3 · Compare totals</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+  <div class="comparison" aria-label="Direct method and indirect method side by side">
+    <div class="statement direct">
+      <div class="statement-head"><h3>Direct Method</h3><p>Report the actual cash coming in and going out from operations.</p></div>
+      <div class="line-row add direct-line"><span class="name">Cash collected from customers</span><span class="amt">+$90,000</span></div>
+      <div class="line-row sub direct-line"><span class="name">Cash paid to suppliers</span><span class="amt">-$18,000</span></div>
+      <div class="line-row sub direct-line"><span class="name">Cash paid to employees and other operating costs</span><span class="amt">-$12,000</span></div>
+      <div class="line-row total direct-line"><span class="name">Net cash provided by operating activities</span><span class="amt">$60,000</span></div>
+    </div>
+    <div class="statement indirect">
+      <div class="statement-head"><h3>Indirect Method</h3><p>Start with net income, then adjust it to operating cash.</p></div>
+      <div class="line-row reveal indirect-line"><span class="name">Net income</span><span class="amt">$50,000</span></div>
+      <div class="line-row add indirect-line"><span class="name">Add depreciation expense (noncash)</span><span class="amt">+$10,000</span></div>
+      <div class="line-row sub indirect-line"><span class="name">Subtract increase in Accounts Receivable</span><span class="amt">-$8,000</span></div>
+      <div class="line-row add indirect-line"><span class="name">Add decrease in Inventory</span><span class="amt">+$5,000</span></div>
+      <div class="line-row add indirect-line"><span class="name">Add increase in Accounts Payable</span><span class="amt">+$3,000</span></div>
+      <div class="line-row total indirect-line"><span class="name">Net cash provided by operating activities</span><span class="amt">$60,000</span></div>
+    </div>
+  </div>
+
+  <div class="compare-box" id="compareBox">
+    <h3>Same destination, different route</h3>
+    <p><strong>Direct method:</strong> cash collected minus cash paid. <strong>Indirect method:</strong> net income adjusted to cash. Both report <strong>$60,000</strong> of operating cash.</p>
+  </div>
+
+  <div class="predict">
+    <div class="pq">Predict: depreciation reduced net income but did not use cash this period. Under the indirect method, depreciation is...</div>
+    <div>
+      <button class="pbtn" onclick="predict('add')">Added back</button>
+      <button class="pbtn" onclick="predict('sub')">Subtracted again</button>
+      <button class="pbtn" onclick="predict('fin')">Reported as financing</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>Common Trap</h3>
+    <p>The direct method and indirect method are two formats for the <strong>operating</strong> section. They do not change investing or financing activities, and they should end at the same operating cash number.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">The direct method for operating cash flows starts with:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Net income and adjustments</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Cash collected from customers and cash paid for operating costs</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Only financing activities</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) The ending cash balance only</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Under the indirect method, depreciation is added back because:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) It is a noncash expense</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) It is a cash payment to owners</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) It belongs in investing activities</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) It increases Accounts Receivable</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Cash collected from customers is $90,000 and operating cash payments are $30,000. Direct-method operating cash flow is:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) $30,000</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) $50,000</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) $60,000</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) $120,000</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Students often confuse net income with operating cash. The side-by-side view shows why they can differ.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Direct method:</strong> Lists operating cash receipts and payments.</li><li><strong>Indirect method:</strong> Reconciles net income to operating cash.</li><li><strong>Noncash expense:</strong> Expense that lowered income but did not use cash.</li><li><strong>Working capital:</strong> Current accounts such as receivables, inventory, and payables.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Direct explains where operating cash came from. Indirect explains why net income became operating cash.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p><strong>Direct:</strong> $90,000 collected - $30,000 paid = $60,000 operating cash.</p><p><strong>Indirect:</strong> $50,000 net income + $10,000 depreciation - $8,000 A/R + $5,000 inventory + $3,000 A/P = $60,000 operating cash.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Distinguish</strong> the direct method from the indirect method for operating cash flows.</li>
+    <li><strong>Calculate</strong> operating cash flow using cash receipts and cash payments.</li>
+    <li><strong>Reconcile</strong> net income to operating cash with noncash and working-capital adjustments.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 12 · Statement of cash flows</footer>
+</div>
+
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){
+  try{
+    const file=location.pathname.split('/').pop()||document.title;
+    const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');
+    data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};
+    localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));
+  }catch(err){}
+}
+function predictGate(key,correct,fb,hint){
+  window.__predictTries=window.__predictTries||{};
+  if(correct){window.__predictTries[key]=0;return true;}
+  const tries=(window.__predictTries[key]||0)+1;
+  window.__predictTries[key]=tries;
+  if(tries===1){fb.textContent=hint||'Hint: think about whether cash actually left the company.';fb.style.color='#b45309';return false;}
+  return true;
+}
+function resetPredictGates(){window.__predictTries={};}
+const $=id=>document.getElementById(id);
+let directShown=false,indirectShown=false,compared=false,predicted=false;
+function revealRows(selector){document.querySelectorAll(selector).forEach((row,i)=>setTimeout(()=>row.classList.add('on'),i*120));}
+function showDirect(){
+  if(directShown)return;
+  directShown=true;
+  revealRows('.direct-line');
+  $('status').textContent='Direct method: list the operating cash receipts and payments directly.';
+  $('indirectBtn').disabled=false;
+  $('directBtn').disabled=true;
+}
+function showIndirect(){
+  if(indirectShown)return;
+  indirectShown=true;
+  revealRows('.indirect-line');
+  $('status').textContent='Indirect method: start with net income, then adjust it to cash.';
+  $('compareBtn').disabled=false;
+  $('indirectBtn').disabled=true;
+}
+function showCompare(){
+  if(compared)return;
+  compared=true;
+  $('compareBox').classList.add('show');
+  $('status').innerHTML='Both methods end at <strong>$60,000</strong> net cash provided by operating activities.';
+  $('status').style.color='#059669';
+  $('compareBtn').disabled=true;
+}
+function predict(ans){
+  if(predicted)return;
+  const fb=$('pfb');
+  const ok=ans==='add';
+  if(!predictGate('main',ok,fb,'Hint: depreciation reduced income, but no current-period cash payment happened for depreciation.'))return;
+  predicted=true;
+  if(ok){fb.textContent='Correct. Depreciation is added back because it reduced net income without using cash.';fb.style.color='#059669';}
+  else{fb.textContent='Not quite. The indirect method adds depreciation back because it is noncash.';fb.style.color='#dc2626';}
+}
+function resetAll(){
+  resetPredictGates();
+  directShown=false;indirectShown=false;compared=false;predicted=false;
+  document.querySelectorAll('.line-row').forEach(row=>row.classList.remove('on'));
+  $('compareBox').classList.remove('show');
+  $('pfb').textContent='';
+  $('status').textContent='Click “Show direct method” to start with actual operating cash receipts and payments.';
+  $('status').style.color='';
+  $('directBtn').disabled=false;$('indirectBtn').disabled=true;$('compareBtn').disabled=true;
+}
+function switchTab(t){
+  const isAnim=t==='anim';
+  $('tab-anim').classList.toggle('active',isAnim);
+  $('tab-practice').classList.toggle('active',!isAnim);
+  $('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');
+  $('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');
+  $('pane-anim').style.display=isAnim?'':'none';
+  $('pane-practice').style.display=isAnim?'none':'';
+  $('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');
+  $('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');
+}
+const answers={q1:'B',q2:'A',q3:'C'};
+const fbk={
+  q1:{ok:'Correct. Solution: the direct method lists actual operating cash receipts and cash payments.',err:'Not quite. Solution: direct means direct cash flow lines, such as cash collected from customers and cash paid for operating costs.'},
+  q2:{ok:'Correct. Solution: depreciation lowered net income, but it did not use cash in the current period, so the indirect method adds it back.',err:'Not quite. Solution: depreciation is a noncash expense, so the indirect method adds it back to net income.'},
+  q3:{ok:'Correct. Solution: direct-method operating cash flow = $90,000 cash collected - $30,000 operating cash payments = $60,000.',err:'Not quite. Solution: subtract operating cash payments from cash collected: $90,000 - $30,000 = $60,000.'}
+};
+function checkPractice(){
+  let score=0;
+  ['q1','q2','q3'].forEach(q=>{
+    const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));
+    card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));
+    card.querySelectorAll('input').forEach(r=>r.disabled=true);
+    if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}
+    const val=sel.value,cor=answers[q];
+    card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});
+    if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}
+    else{fb.textContent=fbk[q].err;fb.className='q-fb err';}
+  });
+  if(score===3)markLessonComplete();
+  const sb=$('score');
+  sb.style.display='block';
+  sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';
+  sb.style.color=score===3?'#059669':'#b45309';
+  $('retry').style.display=score<3?'':'none';
+}
+function retryPractice(){
+  ['q1','q2','q3'].forEach(q=>{
+    const card=$(q);
+    card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));
+    card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});
+    $('fb'+q.slice(1)).textContent='';
+  });
+  $('score').style.display='none';
+  $('retry').style.display='none';
+}
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,button,textarea'))return;
+  if(e.key==='ArrowRight'){
+    if(!$('directBtn').disabled)showDirect();
+    else if(!$('indirectBtn').disabled)showIndirect();
+    else if(!$('compareBtn').disabled)showCompare();
+  }
+});
+</script>
+</body>
+</html>

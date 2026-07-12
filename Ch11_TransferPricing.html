@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Transfer Pricing — The Range Both Divisions Can Accept</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#6d28d9;--accent2:#a78bfa;--good:#059669;--bad:#dc2626;--warn:#b45309;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1020px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.9rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:740px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:780px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}.facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}.assumption{max-width:760px;margin:0 auto 1rem;background:#f0fdfa;border:1px solid #99f6e4;border-left:5px solid #14b8a6;border-radius:10px;padding:.65rem .85rem;color:#115e59;font-size:.84rem;font-weight:750}
+  .range-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin:.85rem 0 1rem}
+  .range-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.75rem;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.06)}
+  .range-k{display:block;font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);line-height:1.15}
+  .range-v{display:block;font-size:.95rem;font-weight:900;color:var(--ink);line-height:1.3;margin-top:.25rem}
+  .range-note{grid-column:1/-1;border:1px solid #c4b5fd;background:#f5f3ff;border-left:5px solid var(--accent);border-radius:10px;padding:.65rem .8rem;text-align:center;font-size:.86rem;font-weight:850;color:#4c1d95}
+  @media(max-width:760px){.range-guide{grid-template-columns:1fr}}
+  .model{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:.6rem 0 1rem}.step-card{border:2px solid var(--line);border-radius:14px;background:#f9fbfd;padding:.85rem;opacity:.36;transform:translateY(8px);transition:all .35s}.step-card.on{opacity:1;transform:translateY(0);border-color:var(--accent2);background:#fff;box-shadow:0 6px 18px rgba(23,34,51,.10)}.step-k{font-size:.66rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.step-title{font-size:.98rem;font-weight:900;margin:.2rem 0;color:var(--accent)}.step-body{font-size:.86rem;color:#334155}.calc{font-weight:900;color:var(--ink);display:block;margin-top:.35rem}.result-good{color:var(--good);font-weight:900}.result-bad{color:var(--bad);font-weight:900}.range{display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;margin-top:.4rem}.range-box{border:1px solid var(--line);border-radius:10px;padding:.55rem;text-align:center;background:#f8fafc}.range-mid{font-weight:900;color:var(--muted)}
+  .predict{border:2px dashed var(--accent);background:#fff7ed;border-radius:12px;padding:.85rem 1rem;margin:.9rem 0}.predict .pq{font-weight:800;font-size:.9rem;margin-bottom:.5rem}.pbtn{padding:.45rem 1rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:800;font-size:.84rem;cursor:pointer;margin:.2rem}.pbtn:hover{background:#fff7ed}.pfb{margin-top:.5rem;font-size:.83rem;font-weight:750;min-height:1rem}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.7rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn:disabled{opacity:.4}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  
+  .decision-lab{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:.9rem;margin:.9rem 0;display:grid;gap:.75rem}
+  .decision-lab h3{font-size:.95rem;color:var(--accent);line-height:1.25}
+  .lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+  .lab-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .lab-card strong{display:block;font-size:.84rem;margin-bottom:.2rem}
+  .lab-card span,.lab-output,.lab-note{color:#334155;font-size:.84rem;line-height:1.45}
+  .lab-controls{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center}
+  .lab-btn{border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;padding:.42rem .75rem;font-weight:850;font-size:.8rem;cursor:pointer}
+  .lab-btn.active,.lab-btn:hover{background:var(--accent);color:#fff}
+  .lab-output{border-left:5px solid var(--accent);background:#fff;border-radius:8px;padding:.65rem .8rem;font-weight:750}
+  .lab-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:.82rem}
+  .lab-table th,.lab-table td{border:1px solid var(--line);padding:.45rem .55rem;text-align:left}
+  .lab-table th{background:#eef6f8;color:var(--ink)}
+  .lab-table td:last-child{text-align:right;font-weight:850}
+  .lab-slider{width:min(420px,100%);accent-color:var(--accent)}
+  @media(max-width:760px){.lab-grid{grid-template-columns:1fr}.lab-table{font-size:.78rem}}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.model{grid-template-columns:1fr}.range{grid-template-columns:1fr}.range-mid{display:none}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="kicker">Chapter 11 · Transfer Pricing</div><h1>Transfer Price: Find the Acceptable Range</h1><p class="subtitle">When one division sells to another inside the company, the transfer price must make sense for both the selling and buying divisions.</p></header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views"><button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🔁 Animation</button><button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button></div>
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Seller variable cost</span><span class="fact-val">$18/unit</span></div>
+    <div class="fact"><span class="fact-label">Outside market price</span><span class="fact-val">$30/unit</span></div>
+    <div class="fact"><span class="fact-label">Buyer outside price</span><span class="fact-val">$28/unit</span></div>
+  </div>
+  <div class="assumption">Assumption: no tax or international transfer-pricing issues; this is a managerial decision model.</div>
+
+  <div class="range-guide" aria-label="Transfer price range guide">
+    <div class="range-card"><span class="range-k">Seller minimum</span><span class="range-v">Variable cost + opportunity cost</span></div>
+    <div class="range-card"><span class="range-k">Buyer maximum</span><span class="range-v">Outside supplier price</span></div>
+    <div class="range-card"><span class="range-k">Range exists?</span><span class="range-v">Only if minimum ≤ maximum</span></div>
+    <div class="range-note">Idle capacity: $18 minimum to $28 maximum works. Full capacity: $30 minimum is above $28, so no acceptable internal range.</div>
+  </div>
+
+<div class="status" id="status" role="status" aria-live="polite">Click “Next step” to find the seller minimum and buyer maximum transfer price.</div>
+  <div class="controls"><button class="btn btn-accent" id="nextBtn" onclick="nextStep()">Next step</button><button class="btn btn-gray" onclick="resetAll()">↺ Reset</button></div>
+
+<div class="model">    <div class="step-card" id="s0"><div class="step-k">Seller Minimum</div><div class="step-title">Idle Capacity</div><div class="step-body">If the seller has idle capacity, minimum transfer price is variable cost: <span class="calc">$18</span>.</div></div>
+    <div class="step-card" id="s1"><div class="step-k">Seller Minimum</div><div class="step-title">Full Capacity</div><div class="step-body">If the seller gives up an outside sale, add lost contribution margin. Minimum becomes the outside market price: <span class="calc">$30</span>.</div></div>
+    <div class="step-card" id="s2"><div class="step-k">Buyer Maximum</div><div class="step-title">Outside Purchase Price</div><div class="step-body">The buyer will not pay more internally than the outside supplier price: <span class="calc">$28</span>.</div></div>
+    <div class="step-card" id="s3"><div class="step-k">Range</div><div class="step-title">Decision</div><div class="step-body">With idle capacity, acceptable range is $18 to $28. With full capacity, seller minimum $30 exceeds buyer maximum $28, so no internal range exists.</div></div></div>
+
+  <div class="decision-lab" aria-label="Transfer price range lab">
+    <h3>Test A Transfer Price</h3>
+    <div class="lab-controls" role="group" aria-label="Choose seller capacity">
+      <button class="lab-btn" type="button" data-transfer-capacity="idle" onclick="setTransferCapacity('idle')">Idle capacity</button>
+      <button class="lab-btn" type="button" data-transfer-capacity="full" onclick="setTransferCapacity('full')">Full capacity</button>
+    </div>
+    <div class="lab-controls"><label for="transferPrice"><strong>Transfer price:</strong> <span id="transferPriceLabel">$22</span></label><input class="lab-slider" id="transferPrice" type="range" min="15" max="32" step="1" value="22" oninput="updateTransferLab()"></div>
+    <div class="lab-output" id="transferOutput" role="status" aria-live="polite"></div>
+  </div>
+  <div class="predict"><div class="pq">Predict: with idle capacity, seller variable cost $18 and buyer outside price $28. Is there a transfer-price range?</div><div><button class="pbtn" onclick="predict('yes')">Yes, $18 to $28</button><button class="pbtn" onclick="predict('no')">No range</button><button class="pbtn" onclick="predict('only30')">Only $30</button></div><div class="pfb" id="pfb" role="status" aria-live="polite"></div></div><div class="trap"><h3>Common Trap</h3><p>The seller minimum depends on capacity. Idle capacity usually lowers the minimum; full capacity adds opportunity cost from lost outside sales.</p></div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: Apple's &euro;13B Transfer-Pricing Case</h3>
+    <p>How Apple priced transactions among its own Irish subsidiaries let it report an effective tax rate as low as 0.005% (2014). In September 2024 the EU Court of Justice ordered Ireland to recover &euro;13 billion &mdash; a case that turned on whether those internal, related-party prices were "arm's length."</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>Related-party prices</strong><p>Units of the same company charged each other for rights, goods, and services.</p></div>
+      <div class="case-card"><strong>The arm's-length test</strong><p>Internal transfer prices are supposed to match what independent firms would charge.</p></div>
+      <div class="case-card"><strong>Why it matters</strong><p>The transfer price decides which division &mdash; and which country &mdash; reports the profit and pays the tax.</p></div>
+    </div>
+    <p><strong>Transfer-pricing question:</strong> how should related divisions set the price for what they sell each other?</p>
+    <p class="case-source">Source for discussion: <a href="https://en.wikipedia.org/wiki/Apple%27s_EU_tax_dispute" target="_blank" rel="noopener">Wikipedia, "Apple's EU tax dispute"</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none"><div class="practice">    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Seller has idle capacity and variable cost is $18. Seller minimum transfer price is:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) $18</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) $28</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) $30</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) $46</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">What usually sets the buyer's maximum acceptable transfer price?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) The seller's variable cost only</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) The cost of buying the item from an outside supplier</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) The seller's desired profit only</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) The number of units transferred last year</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">What happens when the seller's minimum acceptable price is higher than the buyer's maximum acceptable price?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Any internal price will work</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) The buyer must accept the seller's price</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) There is no acceptable internal transfer price range</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) The seller's variable cost becomes irrelevant</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div><div class="practice-foot"><button class="btn btn-accent" onclick="checkPractice()">Check My Work</button><div class="score" id="score" role="status" aria-live="polite"></div><button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button></div></div></section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Transfer pricing protects both divisions from being forced into a bad internal trade.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Seller minimum:</strong> Lowest price the selling division should accept.</li><li><strong>Buyer maximum:</strong> Highest price the buying division should pay.</li><li><strong>Idle capacity:</strong> Unused capacity that lowers the seller minimum.</li><li><strong>Internal range:</strong> Prices acceptable to both divisions.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>A transfer works when seller minimum <= buyer maximum.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Idle capacity range: $18 seller minimum to $28 buyer maximum. Full capacity: seller minimum $30 &gt; buyer maximum $28, so no range.</p></details>
+</section>
+
+<div class="lo"><h2>Learning Objectives</h2><ul><li><strong>Identify</strong> the seller minimum transfer price.</li><li><strong>Identify</strong> the buyer maximum transfer price.</li><li><strong>Decide</strong> whether an internal transfer range exists.</li></ul></div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 11 · Transfer pricing</footer>
+</div>
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){try{const file=location.pathname.split('/').pop()||document.title;const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));}catch(err){}}
+function predictGate(key,correct,fb,hint){window.__predictTries=window.__predictTries||{};if(correct){window.__predictTries[key]=0;return true;}const tries=(window.__predictTries[key]||0)+1;window.__predictTries[key]=tries;if(tries===1){fb.textContent=hint||'Hint: use the highlighted numbers, then try once more.';fb.style.color='#b45309';return false;}return true;}
+function resetPredictGates(){window.__predictTries={};}
+const $=id=>document.getElementById(id);
+let step=-1,predicted=false;
+function nextStep(){if(step>=3)return;step++;$('s'+step).classList.add('on');$('status').innerHTML=["Idle capacity seller minimum: $18.","Full capacity seller minimum: $30.","Buyer maximum: $28.","Idle capacity creates a range; full capacity does not."][step];$('status').style.color=step===3?'#059669':'';$('nextBtn').textContent=step>=3?'Complete':'Next step';$('nextBtn').disabled=step>=3;}
+function predict(ans){if(predicted)return;const fb=$('pfb');const ok=ans==='yes';if(!predictGate('main',ok,fb,'Hint: compare the seller minimum with the buyer maximum.'))return;predicted=true;if(ok){fb.textContent='Correct. Any price from $18 to $28 can make both divisions at least as well off.';fb.style.color='#059669';}else{fb.textContent='There is a range: seller minimum $18, buyer maximum $28.';fb.style.color='#dc2626';}}
+function resetAll(){resetPredictGates();step=-1;predicted=false;document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('on'));$('pfb').textContent='';$('status').textContent='Click “Next step” to find the seller minimum and buyer maximum transfer price.';$('status').style.color='';$('nextBtn').textContent='Next step';$('nextBtn').disabled=false;}
+let transferCapacity='idle';
+function setTransferCapacity(kind){transferCapacity=kind;document.querySelectorAll('[data-transfer-capacity]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-transfer-capacity')===kind));updateTransferLab();}
+function updateTransferLab(){const price=Number($('transferPrice').value);const sellerMin=transferCapacity==='idle'?18:30;const buyerMax=28;const ok=price>=sellerMin&&price<=buyerMax;$('transferPriceLabel').textContent='$'+price;$('transferOutput').textContent=(transferCapacity==='idle'?'Idle capacity':'Full capacity')+': seller minimum $'+sellerMin+', buyer maximum $'+buyerMax+'. A $'+price+' transfer price '+(ok?'works for both divisions.':'does not fit the acceptable range.');}
+setTransferCapacity('idle');
+const answers={"q1":"A","q2":"B","q3":"C"};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: with idle capacity, the seller gives up no outside sales, so the minimum transfer price is the variable cost: $18.",
+    "err": "Not quite. Solution: when there is idle capacity, opportunity cost is zero. Seller minimum = variable cost + opportunity cost = $18 + $0 = $18."
+  },
+  "q2": {
+    "ok": "Correct. Solution: the buyer compares the internal transfer price with the outside purchase option. The buyer should not pay internally more than it would pay externally for the same item.",
+    "err": "Not quite. Solution: the buyer maximum is usually limited by the outside supplier price because that is the buyer's alternative."
+  },
+  "q3": {
+    "ok": "Correct. Solution: a transfer price range exists only when the seller's minimum is less than or equal to the buyer's maximum. If the minimum is higher than the maximum, the internal range is empty.",
+    "err": "Not quite. Solution: both divisions need a price they can accept. If the seller's minimum is above the buyer's maximum, no internal price works for both sides."
+  }
+};
+function switchTab(t){const isAnim=t==='anim';$('tab-anim').classList.toggle('active',isAnim);$('tab-practice').classList.toggle('active',!isAnim);$('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');$('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');$('pane-anim').style.display=isAnim?'':'none';$('pane-practice').style.display=isAnim?'none':'';$('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');$('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');}
+function checkPractice(){let score=0;['q1','q2','q3'].forEach(q=>{const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));card.querySelectorAll('input').forEach(r=>r.disabled=true);if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}const val=sel.value,cor=answers[q];card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}else{fb.textContent=fbk[q].err;fb.className='q-fb err';}});if(score===3)markLessonComplete();const sb=$('score');sb.style.display='block';sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';sb.style.color=score===3?'#059669':'#b45309';$('retry').style.display=score<3?'':'none';}
+function retryPractice(){['q1','q2','q3'].forEach(q=>{const card=$(q);card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});$('fb'+q.slice(1)).textContent='';});$('score').style.display='none';$('retry').style.display='none';}
+</script>
+</body>
+</html>

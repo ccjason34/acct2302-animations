@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Product or Period? The Cost Sorting Machine</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#e05c2a; --accent2:#f08050;
+    --prod:#2563eb; --period:#d97706;
+    --dm:#059669; --dl:#2563eb; --moh:#9333ea;
+    --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1080px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.4rem,3.5vw,2rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:680px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .machine{ text-align:center; font-size:1.05rem; font-weight:900; color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:10px; padding:.55rem .8rem; margin-bottom:.75rem; box-shadow:0 4px 12px rgba(224,92,42,.28); letter-spacing:.01em; }
+  .item-zone{ min-height:110px; display:flex; justify-content:center; align-items:center; margin-bottom:.8rem; padding:1rem; border:2px dashed var(--accent); border-radius:16px; background:linear-gradient(180deg,#fff6f1,#fffafa); }
+  .cost-card{ background:#fff; border:3px solid var(--accent); border-radius:16px; padding:1.15rem 1.7rem; box-shadow:0 10px 28px rgba(224,92,42,.20); text-align:center; max-width:460px; animation:dropIn .45s cubic-bezier(.34,1.4,.64,1); }
+  .cost-card .cc-name{ font-weight:800; font-size:1.5rem; line-height:1.25; }
+  .cost-card .cc-amt{ color:var(--muted); font-weight:800; font-size:1.1rem; margin-top:.3rem; }
+  .cost-card.gone{ opacity:0; transform:translateY(-18px) scale(.9); transition:all .4s; animation:none; }
+  @keyframes dropIn{ 0%{ opacity:0; transform:translateY(-28px) scale(.85); } 100%{ opacity:1; transform:translateY(0) scale(1); } }
+
+  .predict-row{ display:flex; gap:.6rem; justify-content:center; margin:.3rem 0 .6rem; }
+  .pbtn{ padding:.55rem 1.3rem; border-radius:10px; font-weight:800; font-size:.92rem; cursor:pointer; border:2px solid; background:#fff; }
+  .pbtn.prod{ border-color:var(--prod); color:var(--prod); } .pbtn.prod:hover{ background:#eff4ff; }
+  .pbtn.period{ border-color:var(--period); color:var(--period); } .pbtn.period:hover{ background:#fff5e8; }
+  .verdict{ text-align:center; min-height:26px; font-weight:800; font-size:.9rem; }
+
+  .bins{ display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:.4rem; }
+  .bin{ border:2px solid; border-radius:14px; padding:.9rem; min-height:150px; }
+  .bin.prod{ border-color:#bcd2fb; background:#f4f8ff; }
+  .bin.period{ border-color:#f6d9a6; background:#fff8ee; }
+  .bin h3{ font-size:.95rem; }
+  .bin .where{ font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:.12rem .5rem; border-radius:6px; display:inline-block; margin:.25rem 0 .5rem; }
+  .bin.prod .where{ background:#dbeafe; color:#1d4ed8; }
+  .bin.period .where{ background:#fde9c8; color:#b45309; }
+  .chip{ display:inline-flex; gap:.4rem; align-items:center; background:#fff; border:1px solid var(--line); border-radius:999px; padding:.25rem .6rem; margin:.2rem .2rem 0 0; font-size:.74rem; font-weight:700; animation:pop .35s ease; }
+  @keyframes pop{ from{ transform:scale(.6); opacity:0;} to{ transform:scale(1); opacity:1;} }
+  .dot{ width:9px; height:9px; border-radius:50%; }
+  .dot.dm{ background:var(--dm);} .dot.dl{ background:var(--dl);} .dot.moh{ background:var(--moh);} .dot.per{ background:var(--period);}
+
+  .totals{ display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; margin-top:1rem; }
+  .tot{ border:2px solid var(--line); border-radius:10px; padding:.55rem .3rem; text-align:center; background:#f9fbfd; }
+  .tot .t-l{ font-size:.6rem; font-weight:900; text-transform:uppercase; color:var(--muted); }
+  .tot .t-v{ font-size:1rem; font-weight:900; }
+  .tot.dm .t-v{color:var(--dm);} .tot.dl .t-v{color:var(--dl);} .tot.moh .t-v{color:var(--moh);} .tot.per .t-v{color:var(--period);} .tot.prod .t-v{color:#0f172a;}
+
+  .groupings{ margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+  .grp{ border:2px dashed var(--line); border-radius:12px; padding:.8rem; text-align:center; }
+  .grp b{ font-size:.95rem; } .grp .formula{ font-size:.8rem; color:var(--muted); margin:.3rem 0; } .grp .gval{ font-size:1.3rem; font-weight:900; color:var(--accent); }
+
+  .controls{ display:flex; gap:.5rem; justify-content:center; margin-top:1rem; flex-wrap:wrap; }
+  .btn{ padding:.5rem 1.1rem; border:none; border-radius:9px; font-weight:800; font-size:.82rem; color:#fff; cursor:pointer; }
+  .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);} .btn:disabled{ opacity:.4; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; }
+  .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; }
+  .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .bins,.groupings{ grid-template-columns:1fr;} .totals{ grid-template-columns:repeat(2,1fr);} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 1 · Product vs. Period Costs</div>
+  <h1>Product or Period? 🔀</h1>
+  <p class="subtitle">Sportswear Co. has ten costs. Feed each one into the sorting machine: <strong>product costs</strong> become inventory; <strong>period costs</strong> are expensed right away. Predict first, then watch where it lands.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🔀 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Factory costs</span><span class="fact-val">Product costs</span></div>
+    <div class="fact"><span class="fact-label">Selling/admin</span><span class="fact-val">Period costs</span></div>
+    <div class="fact"><span class="fact-label">Prime cost</span><span class="fact-val">DM + DL</span></div>
+    <div class="fact"><span class="fact-label">Conversion cost</span><span class="fact-val">DL + MOH</span></div>
+  </div>
+<div class="machine">⬇️ Next cost into the sorting machine ⬇️</div>
+  <div class="item-zone" id="itemZone"></div>
+  <div class="predict-row" id="predictRow">
+    <button class="pbtn prod"   onclick="sortItem('product')">📦 Product Cost</button>
+    <button class="pbtn period" onclick="sortItem('period')">🧾 Period Cost</button>
+  </div>
+  <div class="verdict" id="verdict" role="status" aria-live="polite">Click <strong>Product</strong> or <strong>Period</strong> to sort the first cost.</div>
+
+  <div class="bins">
+    <div class="bin prod">
+      <h3>📦 Product Costs</h3>
+      <span class="where">→ Inventory, then Cost of Goods Sold</span>
+      <div id="binProd"></div>
+    </div>
+    <div class="bin period">
+      <h3>🧾 Period Costs</h3>
+      <span class="where">→ Expensed now on the Income Statement</span>
+      <div id="binPeriod"></div>
+    </div>
+  </div>
+
+  <div class="totals">
+    <div class="tot dm"><div class="t-l">Direct Mat.</div><div class="t-v" id="t-dm">$0</div></div>
+    <div class="tot dl"><div class="t-l">Direct Labor</div><div class="t-v" id="t-dl">$0</div></div>
+    <div class="tot moh"><div class="t-l">Mfg. Overhead</div><div class="t-v" id="t-moh">$0</div></div>
+    <div class="tot prod"><div class="t-l">Total Product</div><div class="t-v" id="t-prod">$0</div></div>
+    <div class="tot per"><div class="t-l">Total Period</div><div class="t-v" id="t-per">$0</div></div>
+  </div>
+
+  <div class="groupings">
+    <div class="grp"><b>Prime Cost</b><div class="formula">Direct Materials + Direct Labor</div><div class="gval" id="prime">$0</div></div>
+    <div class="grp"><b>Conversion Cost</b><div class="formula">Direct Labor + Manufacturing Overhead</div><div class="gval" id="conv">$0</div></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p><strong>Factory</strong> costs are product costs. <strong>Sales and administrative</strong> costs are period costs. Direct labor appears in both prime cost and conversion cost.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Depreciation on the sewing machines used to make hoodies is a:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Period cost (administrative)</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Product cost (manufacturing overhead)</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Direct materials cost</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Not a cost at all</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Prime cost is defined as:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Direct labor + Manufacturing overhead</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Direct materials + Manufacturing overhead</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Direct materials + Direct labor</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) All product + all period costs</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Why are period costs expensed immediately instead of held in inventory?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) They are not connected to making a specific product</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) They are always small amounts</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) They are paid in cash</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) The IRS requires it for all costs</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Managers need to know which costs attach to products and which costs belong to the period.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Product cost:</strong> Manufacturing cost: direct materials, direct labor, or manufacturing overhead.</li><li><strong>Period cost:</strong> Selling or administrative cost expensed in the current period.</li><li><strong>Prime cost:</strong> Direct materials plus direct labor.</li><li><strong>Conversion cost:</strong> Direct labor plus manufacturing overhead.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Ask whether the cost helps make the product. If yes, it is usually a product cost.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Prime cost = DM + DL. Conversion cost = DL + MOH. Direct labor appears in both formulas because it helps make the product and convert materials.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Classify</strong> a cost as product (DM, DL, MOH) or period (selling &amp; administrative).</li>
+    <li><strong>Explain</strong> why product costs hit the balance sheet first and period costs hit the income statement now.</li>
+    <li><strong>Compute</strong> prime cost (DM + DL) and conversion cost (DL + MOH).</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 1 · Product vs. period costs</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $ = id => document.getElementById(id);
+const items = [
+  { name:"Fabric &amp; thread", amt:42000, kind:"product", cat:"dm",  note:"Direct materials — physically part of the hoodie." },
+  { name:"Hoodie sewing wages", amt:30000, kind:"product", cat:"dl",  note:"Direct labor — workers who build the product." },
+  { name:"Factory rent", amt:12000, kind:"product", cat:"moh", note:"Manufacturing overhead — a factory cost, but not traced to one unit." },
+  { name:"Factory utilities", amt:5000, kind:"product", cat:"moh", note:"Manufacturing overhead — powering the factory." },
+  { name:"Depreciation — sewing machines", amt:8000, kind:"product", cat:"moh", note:"Manufacturing overhead — factory equipment wearing out." },
+  { name:"CEO salary", amt:20000, kind:"period", cat:"per", note:"Administrative — running the whole company, not making product." },
+  { name:"Advertising the hoodie line", amt:10000, kind:"period", cat:"per", note:"Selling cost — promoting the product, not making it." },
+  { name:"Sales commissions", amt:7000, kind:"period", cat:"per", note:"Selling cost — paid to sell, expensed now." },
+  { name:"Sales-office supplies", amt:2000, kind:"period", cat:"per", note:"Administrative — office, not factory." },
+  { name:"Depreciation — sales office", amt:4000, kind:"period", cat:"per", note:"Period cost — office building, NOT the factory." },
+];
+let idx=0, totals={dm:0,dl:0,moh:0,per:0}, predicted=false;
+
+function fmt(n){ return '$'+n.toLocaleString(); }
+function showItem(){
+  const zone=$('itemZone');
+  if(idx>=items.length){ zone.innerHTML='<div style="font-weight:800;color:#059669;">🎉 All ten costs sorted! Scroll down to see prime &amp; conversion cost.</div>'; $('predictRow').style.display='none'; return; }
+  const it=items[idx];
+  zone.innerHTML='<div class="cost-card" id="curCard"><div class="cc-name">'+it.name+'</div><div class="cc-amt">'+fmt(it.amt)+'</div></div>';
+  predicted=false;
+}
+function catLabel(c){ return {dm:'Direct Materials',dl:'Direct Labor',moh:'Mfg. Overhead',per:'Period'}[c]; }
+
+function sortItem(choice){
+  if(idx>=items.length || predicted) return;
+  const it=items[idx];
+  const correct = choice===it.kind;
+  const v=$('verdict');
+  const hint = it.kind==='product' ? 'Hint: ask whether this cost happens in the factory while making the product. Try once more.' : 'Hint: ask whether this cost supports selling or administration instead of production. Try once more.';
+  if(!predictGate('sort-'+idx, correct, v, hint)) return;
+  predicted=true;
+  if(correct){ v.innerHTML='✅ Correct — <strong>'+it.name+'</strong> is a '+(it.kind==='product'?'product':'period')+' cost ('+catLabel(it.cat)+'). '+it.note; v.style.color='#059669'; }
+  else { v.innerHTML='❌ Actually it’s a <strong>'+(it.kind==='product'?'product':'period')+' cost</strong> ('+catLabel(it.cat)+'). '+it.note; v.style.color='#dc2626'; }
+
+  const card=$('curCard'); if(card) card.classList.add('gone');
+  setTimeout(()=>{
+    const bin = it.kind==='product' ? $('binProd') : $('binPeriod');
+    const chip=document.createElement('span'); chip.className='chip';
+    chip.innerHTML='<span class="dot '+it.cat+'"></span>'+it.name+' · '+fmt(it.amt);
+    bin.appendChild(chip);
+    totals[it.cat]+=it.amt;
+    updateTotals();
+    idx++; showItem();
+  },400);
+}
+function updateTotals(){
+  $('t-dm').textContent=fmt(totals.dm); $('t-dl').textContent=fmt(totals.dl);
+  $('t-moh').textContent=fmt(totals.moh); $('t-per').textContent=fmt(totals.per);
+  const prod=totals.dm+totals.dl+totals.moh;
+  $('t-prod').textContent=fmt(prod);
+  $('prime').textContent=fmt(totals.dm+totals.dl);
+  $('conv').textContent=fmt(totals.dl+totals.moh);
+}
+function resetAll(){ resetPredictGates();
+  idx=0; totals={dm:0,dl:0,moh:0,per:0}; predicted=false;
+  $('binProd').innerHTML=''; $('binPeriod').innerHTML='';
+  $('predictRow').style.display='flex'; updateTotals(); showItem();
+  $('verdict').innerHTML='Click <strong>Product</strong> or <strong>Period</strong> to sort the first cost.'; $('verdict').style.color='';
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'C',q3:'A'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: depreciation on factory sewing machines helps make the product, but it is not direct materials or direct labor. That makes it manufacturing overhead, a product cost.",
+    "err": "Not quite. Solution: factory machine depreciation is part of manufacturing overhead. It is attached to inventory as a product cost until the goods are sold."
+  },
+  "q2": {
+    "ok": "Correct. Solution: Prime cost = direct materials + direct labor. These are the two direct manufacturing costs that can be traced to the product.",
+    "err": "Not quite. Solution: prime cost combines direct materials and direct labor. Manufacturing overhead is included in conversion cost, not prime cost."
+  },
+  "q3": {
+    "ok": "Correct. Solution: period costs are selling and administrative costs. They are tied to the current period, not to making inventory, so they are expensed immediately.",
+    "err": "Not quite. Solution: costs can be held in inventory only when they help manufacture the product. Selling and administrative costs are period costs, so they go straight to expense."
+  }
+};
+function checkPractice(){
+  let score=0;
+  ['q1','q2','q3'].forEach(q=>{
+    const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1));
+    card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true);
+    if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; }
+    const val=sel.value, cor=answers[q];
+    card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); });
+    if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; }
+  });
+  if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block';
+  sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';
+  sb.style.color= score===3?'#059669':'#b45309';
+  $('retry').style.display= score<3?'':'none';
+}
+function retryPractice(){
+  ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; });
+  $('score').style.display='none'; $('retry').style.display='none';
+}
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'&&idx<items.length&&!predicted){ /* hint only */ } });
+showItem(); updateTotals();
+</script>
+</body>
+</html>

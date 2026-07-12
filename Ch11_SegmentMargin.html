@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Segment Margin — Traceable vs Common Fixed Costs</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#6d28d9;--accent2:#a78bfa;--good:#059669;--bad:#dc2626;--warn:#b45309;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1020px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.9rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:740px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:780px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}.facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}.assumption{max-width:760px;margin:0 auto 1rem;background:#f0fdfa;border:1px solid #99f6e4;border-left:5px solid #14b8a6;border-radius:10px;padding:.65rem .85rem;color:#115e59;font-size:.84rem;font-weight:750}
+  .margin-filter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin:.85rem 0 1rem}
+  .filter-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.75rem;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.06)}
+  .filter-k{display:block;font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);line-height:1.15}
+  .filter-v{display:block;font-size:.9rem;font-weight:850;color:#334155;line-height:1.35;margin-top:.25rem}
+  .filter-note{grid-column:1/-1;border:1px solid #c4b5fd;background:#f5f3ff;border-left:5px solid var(--accent);border-radius:10px;padding:.65rem .8rem;text-align:center;font-size:.86rem;font-weight:850;color:#4c1d95}
+  @media(max-width:760px){.margin-filter{grid-template-columns:1fr}}
+  .model{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:.6rem 0 1rem}.step-card{border:2px solid var(--line);border-radius:14px;background:#f9fbfd;padding:.85rem;opacity:.36;transform:translateY(8px);transition:all .35s}.step-card.on{opacity:1;transform:translateY(0);border-color:var(--accent2);background:#fff;box-shadow:0 6px 18px rgba(23,34,51,.10)}.step-k{font-size:.66rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.step-title{font-size:.98rem;font-weight:900;margin:.2rem 0;color:var(--accent)}.step-body{font-size:.86rem;color:#334155}.calc{font-weight:900;color:var(--ink);display:block;margin-top:.35rem}.result-good{color:var(--good);font-weight:900}.result-bad{color:var(--bad);font-weight:900}.range{display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;margin-top:.4rem}.range-box{border:1px solid var(--line);border-radius:10px;padding:.55rem;text-align:center;background:#f8fafc}.range-mid{font-weight:900;color:var(--muted)}
+  .predict{border:2px dashed var(--accent);background:#fff7ed;border-radius:12px;padding:.85rem 1rem;margin:.9rem 0}.predict .pq{font-weight:800;font-size:.9rem;margin-bottom:.5rem}.pbtn{padding:.45rem 1rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:800;font-size:.84rem;cursor:pointer;margin:.2rem}.pbtn:hover{background:#fff7ed}.pfb{margin-top:.5rem;font-size:.83rem;font-weight:750;min-height:1rem}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.7rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn:disabled{opacity:.4}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  
+  .decision-lab{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:.9rem;margin:.9rem 0;display:grid;gap:.75rem}
+  .decision-lab h3{font-size:.95rem;color:var(--accent);line-height:1.25}
+  .lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+  .lab-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .lab-card strong{display:block;font-size:.84rem;margin-bottom:.2rem}
+  .lab-card span,.lab-output,.lab-note{color:#334155;font-size:.84rem;line-height:1.45}
+  .lab-controls{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center}
+  .lab-btn{border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;padding:.42rem .75rem;font-weight:850;font-size:.8rem;cursor:pointer}
+  .lab-btn.active,.lab-btn:hover{background:var(--accent);color:#fff}
+  .lab-output{border-left:5px solid var(--accent);background:#fff;border-radius:8px;padding:.65rem .8rem;font-weight:750}
+  .lab-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:.82rem}
+  .lab-table th,.lab-table td{border:1px solid var(--line);padding:.45rem .55rem;text-align:left}
+  .lab-table th{background:#eef6f8;color:var(--ink)}
+  .lab-table td:last-child{text-align:right;font-weight:850}
+  .lab-slider{width:min(420px,100%);accent-color:var(--accent)}
+  @media(max-width:760px){.lab-grid{grid-template-columns:1fr}.lab-table{font-size:.78rem}}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.model{grid-template-columns:1fr}.range{grid-template-columns:1fr}.range-mid{display:none}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="kicker">Chapter 11 · Segment Reporting</div><h1>Segment Margin: What Belongs to the Segment?</h1><p class="subtitle">A segment can look profitable or unprofitable depending on whether you subtract traceable fixed costs or allocate common fixed costs.</p></header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views"><button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">📊 Animation</button><button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button></div>
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Sales</span><span class="fact-val">$200,000</span></div>
+    <div class="fact"><span class="fact-label">Variable costs</span><span class="fact-val">$120,000</span></div>
+    <div class="fact"><span class="fact-label">Traceable fixed</span><span class="fact-val">$50,000</span></div>
+    <div class="fact"><span class="fact-label">Common fixed allocation</span><span class="fact-val">$40,000</span></div>
+  </div>
+  <div class="assumption">Assumption: common fixed costs will continue if the segment is dropped unless management can actually eliminate them.</div>
+
+  <div class="margin-filter" aria-label="Segment margin decision filter">
+    <div class="filter-card"><span class="filter-k">Subtract first</span><span class="filter-v">Variable costs to get contribution margin</span></div>
+    <div class="filter-card"><span class="filter-k">Subtract next</span><span class="filter-v">Traceable fixed costs caused by the segment</span></div>
+    <div class="filter-card"><span class="filter-k">Be careful</span><span class="filter-v">Common fixed costs may stay even if the segment is dropped</span></div>
+    <div class="filter-note">Drop-decision question: will this cost disappear if the segment goes away? If not, do not blame the segment for that cost.</div>
+  </div>
+
+<div class="status" id="status" role="status" aria-live="polite">Click “Next step” to build segment margin without blaming common costs.</div>
+  <div class="controls"><button class="btn btn-accent" id="nextBtn" onclick="nextStep()">Next step</button><button class="btn btn-gray" onclick="resetAll()">Reset</button></div>
+
+<div class="model">    <div class="step-card" id="s0"><div class="step-k">Step 1</div><div class="step-title">Contribution Margin</div><div class="step-body">Sales $200,000 − variable costs $120,000 = <span class="calc">$80,000 contribution margin</span>.</div></div>
+    <div class="step-card" id="s1"><div class="step-k">Step 2</div><div class="step-title">Segment Margin</div><div class="step-body">Subtract traceable fixed costs: $80,000 − $50,000 = <span class="calc result-good">$30,000 segment margin</span>.</div></div>
+    <div class="step-card" id="s2"><div class="step-k">Step 3</div><div class="step-title">Do Not Blame Common Costs</div><div class="step-body">After a $40,000 common allocation, the segment appears to lose $10,000, but those common costs do not go away if the segment is dropped.</div></div></div>
+
+  <div class="decision-lab" aria-label="Segment margin view lab">
+    <h3>Switch The View</h3>
+    <div class="lab-controls" role="group" aria-label="Choose segment view">
+      <button class="lab-btn" type="button" data-segment-view="segment" onclick="showSegmentView('segment')">Segment margin</button>
+      <button class="lab-btn" type="button" data-segment-view="allocated" onclick="showSegmentView('allocated')">After common allocation</button>
+    </div>
+    <div class="lab-output" id="segmentOutput" role="status" aria-live="polite"></div>
+  </div>
+  <div class="predict"><div class="pq">Predict: if common fixed costs remain after dropping the segment, should they drive the drop decision?</div><div><button class="pbtn" onclick="predict('no')">No</button><button class="pbtn" onclick="predict('yes')">Yes</button><button class="pbtn" onclick="predict('always')">Always allocate more</button></div><div class="pfb" id="pfb" role="status" aria-live="polite"></div></div><div class="trap"><h3>Common Trap</h3><p>A segment with a positive segment margin helps cover common fixed costs. Dropping it can make total company profit worse even if an allocated statement shows a loss.</p></div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: Ford Model e vs. Ford Pro</h3>
+    <p>Ford reports its business as segments. In 2024, Ford Model e (electric vehicles) lost about $5.1 billion in EBIT, while Ford Pro (commercial vehicles and services) earned roughly +$9 billion at a 13.5% margin &mdash; the same company, two very different segment results.</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>A losing segment</strong><p>Model e spends heavily on EV development and sells at a loss for now.</p></div>
+      <div class="case-card"><strong>A winning segment</strong><p>Ford Pro's commercial trucks and services produce strong, steady profit.</p></div>
+      <div class="case-card"><strong>Why segments</strong><p>A single company-wide average would hide both stories; segment margins make each one visible.</p></div>
+    </div>
+    <p><strong>Segment-margin question:</strong> should Ford keep funding a money-losing segment, and how would you judge it fairly?</p>
+    <p class="case-source">Source for discussion: <a href="https://www.just-auto.com/news/ford-profit-q4-ev/" target="_blank" rel="noopener">just-auto, "Ford swings to Q4 profit, warns of EV losses"</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none"><div class="practice">    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Sales $200,000 − variable costs $120,000 = contribution margin of:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) $80,000</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) $50,000</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) $30,000</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) $(10,000)</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Segment margin subtracts which fixed costs from contribution margin?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) All common fixed costs, even if they remain</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Only selling costs</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Traceable fixed costs caused by the segment</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Direct materials only</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Common fixed costs that remain if the segment is dropped are:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Avoidable</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Not relevant to the drop decision</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Variable costs</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Always assigned to customers</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div><div class="practice-foot"><button class="btn btn-accent" onclick="checkPractice()">Check My Work</button><div class="score" id="score" role="status" aria-live="polite"></div><button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button></div></div></section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Segment margin helps decide whether a segment is truly helping cover company-wide costs.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Contribution margin:</strong> Sales minus variable costs.</li><li><strong>Traceable fixed cost:</strong> Fixed cost caused by the segment.</li><li><strong>Common fixed cost:</strong> Shared cost that usually remains.</li><li><strong>Segment margin:</strong> Contribution margin minus traceable fixed costs.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Segment margin shows whether a segment covers its own traceable fixed costs.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Segment margin = $200,000 - $120,000 - $50,000 = $30,000. Allocated common cost can make the segment look worse without changing cash flow.</p></details>
+</section>
+
+<div class="lo"><h2>Learning Objectives</h2><ul><li><strong>Calculate</strong> contribution margin for a segment.</li><li><strong>Subtract</strong> traceable fixed costs to get segment margin.</li><li><strong>Avoid</strong> using allocated common fixed costs to judge whether to keep a segment.</li></ul></div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 11 · Segment margin</footer>
+</div>
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){try{const file=location.pathname.split('/').pop()||document.title;const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));}catch(err){}}
+function predictGate(key,correct,fb,hint){window.__predictTries=window.__predictTries||{};if(correct){window.__predictTries[key]=0;return true;}const tries=(window.__predictTries[key]||0)+1;window.__predictTries[key]=tries;if(tries===1){fb.textContent=hint||'Hint: use the highlighted numbers, then try once more.';fb.style.color='#b45309';return false;}return true;}
+function resetPredictGates(){window.__predictTries={};}
+const $=id=>document.getElementById(id);
+let step=-1,predicted=false;
+function nextStep(){if(step>=2)return;step++;$('s'+step).classList.add('on');$('status').innerHTML=["Contribution margin: $80,000.","Segment margin: $30,000 positive.","Allocated common fixed cost can mislead the keep/drop decision."][step];$('status').style.color=step===2?'#059669':'';$('nextBtn').textContent=step>=2?'Complete':'Next step';$('nextBtn').disabled=step>=2;}
+function predict(ans){if(predicted)return;const fb=$('pfb');const ok=ans==='no';if(!predictGate('main',ok,fb,'Hint: relevant costs must change with the decision.'))return;predicted=true;if(ok){fb.textContent='Correct. Common fixed costs that remain are not avoidable and should not drive the decision.';fb.style.color='#059669';}else{fb.textContent='No. If common fixed costs remain, they are not avoidable in the keep/drop decision.';fb.style.color='#dc2626';}}
+function resetAll(){resetPredictGates();step=-1;predicted=false;document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('on'));$('pfb').textContent='';$('status').textContent='Click “Next step” to build segment margin without blaming common costs.';$('status').style.color='';$('nextBtn').textContent='Next step';$('nextBtn').disabled=false;}
+function showSegmentView(view){document.querySelectorAll('[data-segment-view]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-segment-view')===view));if(view==='segment'){$('segmentOutput').textContent='Segment view: $200,000 sales - $120,000 variable costs - $50,000 traceable fixed costs = $30,000 positive segment margin.';}else{$('segmentOutput').textContent='Allocated view: $30,000 segment margin - $40,000 common allocation = $(10,000), but the common cost remains if the segment is dropped.';}}
+showSegmentView('segment');
+const answers={"q1":"A","q2":"C","q3":"B"};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: contribution margin = sales - variable costs = $200,000 - $120,000 = $80,000.",
+    "err": "Not quite. Solution: subtract variable costs from sales first. $200,000 - $120,000 = $80,000 contribution margin."
+  },
+  "q2": {
+    "ok": "Correct. Solution: segment margin subtracts traceable fixed costs from contribution margin because those fixed costs are caused by the segment.",
+    "err": "Not quite. Solution: do not subtract common fixed costs that remain either way when computing segment margin. Segment margin focuses on fixed costs traceable to the segment."
+  },
+  "q3": {
+    "ok": "Correct. Solution: common fixed costs that remain after dropping a segment are not relevant to the drop decision because they do not change.",
+    "err": "Not quite. Solution: relevant costs must change with the decision. If common fixed costs remain either way, they should not be charged against the drop decision."
+  }
+};
+function switchTab(t){const isAnim=t==='anim';$('tab-anim').classList.toggle('active',isAnim);$('tab-practice').classList.toggle('active',!isAnim);$('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');$('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');$('pane-anim').style.display=isAnim?'':'none';$('pane-practice').style.display=isAnim?'none':'';$('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');$('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');}
+function checkPractice(){let score=0;['q1','q2','q3'].forEach(q=>{const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));card.querySelectorAll('input').forEach(r=>r.disabled=true);if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}const val=sel.value,cor=answers[q];card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}else{fb.textContent=fbk[q].err;fb.className='q-fb err';}});if(score===3)markLessonComplete();const sb=$('score');sb.style.display='block';sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';sb.style.color=score===3?'#059669':'#b45309';$('retry').style.display=score<3?'':'none';}
+function retryPractice(){['q1','q2','q3'].forEach(q=>{const card=$(q);card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});$('fb'+q.slice(1)).textContent='';});$('score').style.display='none';$('retry').style.display='none';}
+</script>
+</body>
+</html>

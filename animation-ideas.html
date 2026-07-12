@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instructor Planning Catalog — Managerial Accounting Animations</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:#f0f4f8; color:#1a202c; line-height:1.6; }
+    header{ background:linear-gradient(135deg,#0f766e 0%,#2dd4bf 100%); color:#fff; padding:2.5rem 2rem 2rem; text-align:center; }
+    header h1{ font-size:1.9rem; font-weight:700; margin-bottom:.4rem; }
+    header p{ font-size:.95rem; opacity:.9; }
+    .badge-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; margin-top:1rem; }
+    .badge{ background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); border-radius:20px; padding:.25rem .75rem; font-size:.78rem; font-weight:600; }
+    .home-link{ display:inline-block; margin-top:1rem; color:#fff; font-weight:800; font-size:.86rem; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.65); }
+    .home-link:hover{ border-bottom-color:#fff; }
+    nav{ background:#fff; border-bottom:1px solid #e2e8f0; padding:.75rem 1.5rem; display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 6px rgba(0,0,0,.07); }
+    nav a{ text-decoration:none; color:#0f766e; font-size:.82rem; font-weight:600; padding:.3rem .7rem; border-radius:6px; transition:background .15s; }
+    nav a:hover{ background:#e6f7f4; }
+    main{ max-width:980px; margin:0 auto; padding:2rem 1.25rem 4rem; }
+    .tips-section{ background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.07); padding:1.5rem 1.75rem; margin-bottom:2rem; }
+    .tips-section h2{ font-size:1.1rem; font-weight:700; margin-bottom:1rem; color:#0f766e; }
+    .tips-section ul{ padding-left:1.25rem; } .tips-section li{ font-size:.88rem; color:#4a5568; margin-bottom:.5rem; }
+    .tips-section li strong{ color:#1a202c; }
+    .chapter-card{ background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.07); margin-bottom:1.4rem; overflow:hidden; }
+    .chapter-header{ display:flex; align-items:center; gap:1rem; width:100%; border:0; padding:1.1rem 1.5rem; color:#fff; cursor:pointer; font:inherit; text-align:left; }
+    .chapter-num{ font-size:1.5rem; font-weight:800; min-width:2.8rem; text-align:center; }
+    .chapter-title{ font-size:1.02rem; font-weight:600; }
+    .chevron{ margin-left:auto; font-size:1.1rem; transition:transform .25s; }
+    .chapter-card.open .chevron{ transform:rotate(180deg); }
+    .chapter-body{ padding:1.25rem 1.5rem 1.5rem; display:none; }
+    .chapter-card.open .chapter-body{ display:block; }
+    .idea{ border-left:4px solid #e2e8f0; padding:.85rem 1rem; margin-bottom:1rem; border-radius:0 8px 8px 0; background:#f8fafc; }
+    .idea:last-child{ margin-bottom:0; }
+    .idea-title{ font-weight:700; font-size:.97rem; margin-bottom:.4rem; color:#1a202c; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+    .idea-body{ font-size:.88rem; color:#4a5568; }
+    .tag{ font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:.12rem .5rem; border-radius:20px; }
+    .tag.built{ background:#d1fae5; color:#047857; } .tag.idea{ background:#e0e7ff; color:#4338ca; }
+    .open-link{ font-size:.74rem; font-weight:800; text-decoration:none; color:#fff; background:#0f766e; padding:.18rem .6rem; border-radius:6px; margin-left:auto; }
+    footer{ text-align:center; font-size:.78rem; color:#a0aec0; padding:1.5rem; }
+  
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Instructor Planning Catalog</h1>
+  <p>Built animations and optional stretch ideas for ACCT 2302 planning.</p>
+  <div class="badge-row">
+    <span class="badge">Instructor View</span>
+    <span class="badge">Chapters 1–12</span>
+    <span class="badge">All Majors</span>
+    <span class="badge">27 Built + Stretch Ideas</span>
+    <span class="badge">Predict · Reveal · Practice</span>
+  </div>
+  <a class="home-link" href="index.html">Student animation hub -></a>
+  <a class="home-link" href="real-world-cases.html" style="margin-left:1rem">Real-world case library -></a>
+</header>
+
+<nav id="chapter-nav"></nav>
+
+<main>
+  <div class="tips-section">
+    <h2>How to use this planning catalog</h2>
+    <ul>
+      <li><strong>Student path lives in the hub</strong> — use this page for instructor planning, not as the primary student landing page.</li>
+      <li><strong>One hard idea, one moving model</strong> — each animation isolates a single concept students struggle with and makes it visual.</li>
+      <li><strong>Predict before reveal</strong> — every animation pauses to ask a prediction (favorable or unfavorable? product or period?) before showing the answer.</li>
+      <li><strong>Built for non-majors</strong> — relatable scenarios (taco truck, coffee shop, bakery) and the textbook's own companies (Sportswear Co., Custom Furniture Co.). Jargon is defined on first use.</li>
+      <li><strong>Common-Trap callouts</strong> target the classic misconceptions (total vs. per-unit cost, sunk costs, favorable ≠ good).</li>
+      <li><strong>Self-contained &amp; offline</strong> — every file is a single HTML page with 3 Practice questions. No internet, logins, or installs needed; open in any browser.</li>
+      <li><strong>Green badge = built &amp; ready.</strong> Blue "Idea" = optional next animation to extend coverage.</li>
+    </ul>
+  </div>
+
+  <div id="chapters"></div>
+</main>
+
+<footer>Prepared for Introductory Managerial Accounting (ACCT 2302) · Fall</footer>
+
+<script>
+const chapters = [
+  { num:1, color:"#e05c2a", title:"How Is Managerial Accounting Used to Help Organizations?", ideas:[
+    { built:true, file:"Ch01_CostFlowRiver.html", title:"The Cost Flow River", body:"Costs flow through three reservoirs — Raw Materials → Work in Process → Finished Goods — then become Cost of Goods Sold when sold. Direct materials, direct labor, and overhead pour into WIP." },
+    { built:true, file:"Ch01_ProductVsPeriodSorter.html", title:"Product or Period? The Cost Sorting Machine", body:"Sort ten costs into product (inventory) vs. period (expensed now), and compute prime and conversion cost. \"Factory\" is the magic word." },
+    { built:true, file:"Ch01_ManufacturerMerchandiserService.html", title:"Manufacturer vs. Merchandiser vs. Service", body:"Three storefronts side by side showing how each one's cost structure and inventory accounts differ — plus a Schedule of Cost of Goods Manufactured that builds itself." },
+  ]},
+  { num:2, color:"#2a7ae0", title:"How Do Organizations Use Job Costing to Track Production Costs?", ideas:[
+    { built:true, file:"Ch02_JobCostSheet.html", title:"What Did This Custom Order Cost?", body:"Post materials requisitions, time tickets, and applied overhead onto a job cost sheet for Custom Furniture Co., then divide by units for the cost per unit." },
+    { built:true, file:"Ch02_PredeterminedOverheadRate.html", title:"Estimate, Apply, True-Up", body:"Set the predetermined overhead rate before the year, apply it during the year, then reconcile over/under-applied overhead to Cost of Goods Sold." },
+    { built:true, file:"Ch02_PlantwideVsDepartmental.html", title:"Plantwide vs. Departmental Rates", body:"Show how using one rate vs. a rate per department changes the cost assigned to a job that spends more time in an expensive department." },
+  ]},
+  { num:3, color:"#27a060", title:"How Do Organizations Use Activity-Based Costing to Allocate Overhead Costs?", ideas:[
+    { built:true, file:"Ch03_ABCvsTraditional.html", title:"One Big Rate vs. Many Small Buckets", body:"Split-screen comparison: a single plantwide rate distorts product cost, while ABC routes overhead through activity pools and drivers — re-costing a complex low-volume product." },
+    { built:false, title:"The Activity Hierarchy", body:"Sort activities into unit-level, batch-level, product-level, and facility-level — and see why batch and product activities are what traditional costing misses." },
+    { built:true, file:"Ch03_ABCServiceBusiness.html", title:"ABC in a Service Business", body:"Apply ABC to a hospital or bank, showing it isn't just for factories." },
+  ]},
+  { num:4, color:"#7c3aed", title:"How Do Organizations Use Process Costing to Track Production Costs?", ideas:[
+    { built:false, title:"Process Cost Flow by Department", body:"Show product costs moving through department WIP accounts, including transferred-in costs, without equivalent-unit calculations." },
+  ]},
+  { num:5, color:"#c0392b", title:"How Are Cost Behavior Patterns Used to Predict Costs?", ideas:[
+    { built:true, file:"Ch05_CostBehaviorDial.html", title:"Turn Up the Volume", body:"A volume dial shows variable costs climbing, fixed costs staying flat (but falling per unit), and mixed costs doing both — on live graphs." },
+    { built:true, file:"Ch05_HighLowMethod.html", title:"Two Points, One Cost Formula", body:"Pick the high and low activity points, compute the variable rate, solve for fixed cost, and build the cost equation y = a + bx." },
+    { built:false, title:"The Relevant Range", body:"Show why a cost formula only holds inside the relevant range, and what happens to fixed costs when you step outside it." },
+  ]},
+  { num:6, color:"#d97706", title:"How Is Cost-Volume-Profit Analysis Used to Make Decisions?", ideas:[
+    { built:true, file:"Ch06_BreakEven.html", title:"Where Do You Stop Losing Money?", body:"Slide volume to watch revenue and cost lines cross at break-even, with shaded loss and profit zones on a live CVP graph." },
+    { built:true, file:"Ch06_ContributionMargin.html", title:"Every Sale Chips In", body:"Each unit's contribution margin fills the fixed-cost bucket, then spills into profit. Includes target profit and margin of safety." },
+    { built:false, title:"Sales Mix &amp; Operating Leverage", body:"Multi-product break-even using a weighted contribution margin, and how a high fixed-cost structure amplifies profit swings." },
+  ]},
+  { num:7, color:"#0891b2", title:"How Are Relevant Revenues and Costs Used to Make Short-Term Decisions?", ideas:[
+    { built:true, file:"Ch07_RelevantCostFilter.html", title:"Does It Change With the Decision?", body:"Run each cost through a filter that drops sunk and unavoidable costs and keeps differential ones — then decide make-or-buy on relevant costs only." },
+    { built:true, file:"Ch07_SpecialOrderCapacity.html", title:"Special Order: Idle vs. Full Capacity", body:"Show why a below-normal-price order can be accepted with idle capacity but rejected at full capacity once opportunity cost enters." },
+    { built:false, title:"Keep or Drop Product Line / Customer", body:"Two classic relevant-cost decisions, each comparing only the differential revenues and costs." },
+  ]},
+  { num:8, color:"#065f46", title:"How Is Capital Budgeting Used to Make Long-Term Decisions?", ideas:[
+    { built:true, file:"Ch08_NPV.html", title:"What Is a Future Dollar Worth Today?", body:"Discount each future cash flow back to today, sum to net present value, and contrast NPV with the payback period. Includes a discount-rate selector." },
+    { built:true, file:"Ch08_IRR.html", title:"IRR vs. NPV", body:"Show the internal rate of return as the discount rate where NPV = 0, then compare IRR with the required return." },
+    { built:false, title:"Sensitivity Analysis", body:"Sweep the discount rate or cash-flow estimate to see how fragile or robust the accept/reject decision is." },
+  ]},
+  { num:9, color:"#9d174d", title:"How Do Organizations Create and Analyze Operating Budgets?", ideas:[
+    { built:true, file:"Ch09_MasterBudget.html", title:"It All Starts With Sales", body:"Watch the master budget build: sales → production → materials/labor/overhead → cash → budgeted income statement, with numbers flowing forward." },
+    { built:true, file:"Ch09_CashBudget.html", title:"The Cash Budget, Month by Month", body:"Track beginning cash, collections, payments, and financing across months, showing when a company must borrow." },
+    { built:false, title:"Flexible vs. Static Budget", body:"Flex the budget to actual volume to separate volume effects from spending effects." },
+  ]},
+  { num:10, color:"#3730a3", title:"How Is Cost Variance Analysis Used to Evaluate Performance?", ideas:[
+    { built:true, file:"Ch10_VarianceColumns.html", title:"Price or Quantity?", body:"The three-column framework (AQ×AP | AQ×SP | SQ×SP) splits a total variance into a price variance and a quantity variance." },
+    { built:true, file:"Ch10_FavorableUnfavorable.html", title:"Favorable Isn't Always Good", body:"Classify direct materials and labor variances, then investigate the cause — a favorable price can cause an unfavorable quantity." },
+    { built:true, file:"Ch10_OverheadVariances.html", title:"Overhead Variances", body:"Extend variance analysis to variable overhead spending/efficiency and fixed overhead budget/volume signals." },
+  ]},
+  { num:11, color:"#6d28d9", title:"How Are Responsibility Centers Used to Evaluate Performance?", ideas:[
+    { built:true, file:"Ch11_ROIDuPont.html", title:"Two Levers Behind ROI", body:"ROI = profit margin × asset turnover. Pull each lever and watch ROI respond so students see how margin and turnover drive performance." },
+    { built:true, file:"Ch11_ResidualIncome.html", title:"Residual Income: Above the Required Return", body:"Compare ROI and residual income to show why a project that lowers average ROI can still add value when it earns more than the required return." },
+    { built:false, title:"Cost vs. Profit vs. Investment Centers", body:"Sort managers into the three center types based on what they control, and match each to the right performance measure." },
+    { built:true, file:"Ch11_SegmentMargin.html", title:"Segment Margin", body:"Separate traceable from common fixed costs in a segment margin statement so keep/drop decisions focus on avoidable costs." },
+  ]},
+  { num:12, color:"#92400e", title:"How Is the Statement of Cash Flows Prepared and Used?", ideas:[
+    { built:true, file:"Ch12_CashFlowBuckets.html", title:"Direct vs. Indirect Method Side by Side", body:"Show that both methods reach the same operating cash total: the direct method lists operating cash receipts and payments, while the indirect method reconciles net income to operating cash." },
+    { built:true, file:"Ch12_ThreeBucketsOfCash.html", title:"Three Buckets of Cash", body:"Sort transactions into operating, investing, and financing before preparing the full statement of cash flows." },
+    { built:true, file:"Ch12_IndirectOperatingCash.html", title:"Indirect Method: Operating Cash", body:"Prepare the operating activities section by starting with net income, then adding/subtracting noncash items, gains/losses, and working-capital changes." },
+    { built:false, title:"Free Cash Flow", body:"Operating cash flow minus capital expenditures — the cash actually available to investors." },
+  ]},
+];
+
+const container = document.getElementById('chapters');
+const nav = document.getElementById('chapter-nav');
+
+chapters.forEach(ch => {
+  const a = document.createElement('a');
+  a.href = `#ch${ch.num}`; a.textContent = `Ch ${ch.num}`; nav.appendChild(a);
+
+  const card = document.createElement('div');
+  card.className = 'chapter-card'; card.id = `ch${ch.num}`;
+
+  const ideasHtml = ch.ideas.map(idea => {
+    const tag = idea.built ? '<span class="tag built">✓ Built</span>' : '<span class="tag idea">Idea</span>';
+    const link = idea.built ? `<a class="open-link" href="${idea.file}">Open ▸</a>` : '';
+    return `<div class="idea"><div class="idea-title">${tag} ${idea.title} ${link}</div><div class="idea-body">${idea.body}</div></div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <button type="button" class="chapter-header" id="ch${ch.num}-header" aria-expanded="false" aria-controls="ch${ch.num}-body" style="background:linear-gradient(90deg, ${ch.color}, ${ch.color}cc)">
+      <div class="chapter-num">${ch.num}</div>
+      <div class="chapter-title">${ch.title}</div>
+      <div class="chevron" aria-hidden="true">▾</div>
+    </button>
+    <div class="chapter-body" id="ch${ch.num}-body" role="region" aria-labelledby="ch${ch.num}-header">${ideasHtml}</div>`;
+  const header = card.querySelector('.chapter-header');
+  header.addEventListener('click', () => {
+    const open = card.classList.toggle('open');
+    header.setAttribute('aria-expanded', String(open));
+  });
+  container.appendChild(card);
+});
+
+const firstCard = document.querySelector('.chapter-card');
+firstCard.classList.add('open');
+firstCard.querySelector('.chapter-header').setAttribute('aria-expanded', 'true');
+</script>
+</body>
+</html>

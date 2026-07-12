@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Where Do You Stop Losing Money? The Break-Even Point</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#d97706; --accent2:#fbbf24;
+    --rev:#16a34a; --cost:#dc2626; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:700px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+
+  .dial{ text-align:center; margin:.3rem 0 .6rem; }
+  .dial label{ font-size:.8rem; font-weight:800; color:var(--muted); }
+  .vol{ font-size:1.7rem; font-weight:900; color:var(--accent); }
+  input[type=range]{ width:min(560px,90%); accent-color:var(--accent); height:8px; }
+
+  .chartwrap{ background:#fcfdff; border:1px solid var(--line); border-radius:12px; padding:.4rem; }
+  svg{ width:100%; height:auto; display:block; }
+  .chart-data{ margin:.4rem 0 .8rem; border:1px solid var(--line); border-radius:10px; background:#f8fafc; padding:.45rem .65rem; }
+  .chart-data summary{ cursor:pointer; font-size:.78rem; font-weight:900; color:var(--muted); }
+  .chart-data table{ width:100%; border-collapse:collapse; margin-top:.45rem; font-size:.78rem; }
+  .chart-data th,.chart-data td{ border-bottom:1px solid var(--line); padding:.3rem; text-align:right; }
+  .chart-data th:first-child,.chart-data td:first-child{ text-align:left; }
+  .legend{ display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin:.5rem 0 .2rem; font-size:.8rem; font-weight:700; }
+  .legend span{ display:inline-flex; align-items:center; gap:.35rem; } .sw{ width:16px; height:4px; border-radius:2px; }
+
+  .readouts{ display:grid; grid-template-columns:repeat(3,1fr); gap:.55rem; margin-top:.5rem; }
+  .ro{ border:2px solid var(--line); border-radius:10px; padding:.6rem .3rem; text-align:center; background:#f9fbfd; }
+  .ro .rl{ font-size:.62rem; font-weight:900; text-transform:uppercase; color:var(--muted); } .ro .rv{ font-size:1.15rem; font-weight:900; }
+  .ro.rev .rv{ color:var(--rev);} .ro.cost .rv{ color:var(--cost);}
+  .ro.profit{ border-width:3px; } .ro.profit .rv{ font-size:1.25rem; }
+
+  .predict{ border:2px dashed var(--accent); background:#fffbeb; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:#b45309; border-radius:8px; font-weight:800; font-size:.85rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#fef3c7; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .formula{ text-align:center; background:#fff7ed; border:1px dashed #fdba74; border-radius:10px; padding:.6rem; margin-top:.8rem; font-weight:800; font-size:.95rem; color:#9a3412; }
+  .formula .big{ color:var(--accent); font-size:1.15rem; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .readouts{ grid-template-columns:1fr;} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 6 · Cost-Volume-Profit</div>
+  <h1>Where Do You Stop Losing Money? ☕</h1>
+  <p class="subtitle">Slide latte volume to see loss, break-even, and profit.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">☕ Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Price</span><span class="fact-val">$5/latte</span></div>
+    <div class="fact"><span class="fact-label">Variable cost</span><span class="fact-val">$2/latte</span></div>
+    <div class="fact"><span class="fact-label">Contribution margin</span><span class="fact-val">$3/latte</span></div>
+    <div class="fact"><span class="fact-label">Fixed costs</span><span class="fact-val">$3,000/mo</span></div>
+  </div>
+
+  <div class="dial">
+    <label for="vol">Lattes sold this month</label><br>
+    <span class="vol" id="volLabel">600</span><br>
+    <input type="range" id="vol" min="0" max="2000" step="50" value="600" oninput="update()" aria-label="Lattes sold this month">
+  </div>
+
+  <div class="chartwrap">
+    <svg viewBox="0 0 520 280" role="img" aria-label="Cost-volume-profit chart">
+      <polygon id="lossZone" fill="#fee2e2" opacity="0.7"/>
+      <polygon id="profitZone" fill="#dcfce7" opacity="0.7"/>
+      <line x1="55" y1="250" x2="500" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+      <line x1="55" y1="20" x2="55" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="278" y="274" text-anchor="middle" font-size="11" fill="#5d6a7a" font-weight="700">Lattes sold</text>
+      <text x="16" y="135" text-anchor="middle" font-size="11" fill="#5d6a7a" font-weight="700" transform="rotate(-90 16 135)">Dollars ($)</text>
+      <g id="grid"></g>
+      <line id="lineRev" stroke="#16a34a" stroke-width="2.5"/>
+      <line id="lineCost" stroke="#dc2626" stroke-width="2.5"/>
+      <circle id="beDot" r="6" fill="#d97706" stroke="#fff" stroke-width="2"/>
+      <text id="beLabel" font-size="10" font-weight="800" fill="#b45309">Break-even</text>
+      <line id="marker" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+      <circle id="dotRev" r="5" fill="#16a34a"/>
+      <circle id="dotCost" r="5" fill="#dc2626"/>
+    </svg>
+  </div>
+  <details class="chart-data">
+    <summary>Data table</summary>
+    <table aria-label="Break-even chart data">
+      <thead><tr><th>Lattes sold</th><th>Total revenue</th><th>Total cost</th><th>Profit/(loss)</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>$0</td><td>$3,000</td><td>($3,000)</td></tr>
+        <tr><td>800</td><td>$4,000</td><td>$4,600</td><td>($600)</td></tr>
+        <tr><td>1,000</td><td>$5,000</td><td>$5,000</td><td>$0</td></tr>
+        <tr><td>1,200</td><td>$6,000</td><td>$5,400</td><td>$600</td></tr>
+        <tr><td>2,000</td><td>$10,000</td><td>$7,000</td><td>$3,000</td></tr>
+      </tbody>
+    </table>
+  </details>
+
+  <div class="legend">
+    <span><span class="sw" style="background:var(--rev)"></span>Total Revenue</span>
+    <span><span class="sw" style="background:var(--cost)"></span>Total Cost</span>
+    <span><span class="sw" style="background:#fee2e2;width:16px;height:12px;border-radius:3px"></span>Loss zone</span>
+    <span><span class="sw" style="background:#dcfce7;width:16px;height:12px;border-radius:3px"></span>Profit zone</span>
+  </div>
+
+  <div class="readouts">
+    <div class="ro rev"><div class="rl">Revenue</div><div class="rv" id="ro-rev">$3,000</div></div>
+    <div class="ro cost"><div class="rl">Total Cost</div><div class="rv" id="ro-cost">$4,200</div></div>
+    <div class="ro profit" id="roProfit"><div class="rl">Profit / (Loss)</div><div class="rv" id="ro-profit">($1,200)</div></div>
+  </div>
+
+  <div class="formula">
+    Break-even units = Fixed ÷ CM per unit = $3,000 ÷ $3 = <span class="big">1,000 lattes</span> &nbsp;(= $5,000 in sales)
+  </div>
+
+  <div class="predict">
+    <div class="pq">🔮 Predict: at <strong>800 lattes</strong>, is the shop making a profit or a loss?</div>
+    <div>
+      <button class="pbtn" onclick="predict('loss')">Loss</button>
+      <button class="pbtn" onclick="predict('be')">Exactly break-even</button>
+      <button class="pbtn" onclick="predict('profit')">Profit</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Break-even is where <strong>profit = $0</strong> (revenue = total cost), <em>not</em> where revenue = $0. And it's the <strong>contribution margin</strong> ($3), not the full $5 price, that chips away at fixed costs — because $2 of every latte goes straight to variable cost.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">At the break-even point, profit equals:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Maximum</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Zero</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Equal to fixed costs</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Negative</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Fixed costs $3,000, price $5, variable cost $2. Break-even in units is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) 600 units</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) 1,000 units</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) 1,500 units</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) 3,000 units</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">What covers fixed costs as each latte is sold?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) The full $5 selling price</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) The $3 contribution margin</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) The $2 variable cost</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Nothing</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Break-even tells the sales level where the business stops losing money.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Contribution margin:</strong> Sales minus variable costs.</li><li><strong>Break-even point:</strong> Sales where profit equals zero.</li><li><strong>Fixed cost:</strong> Cost that must be covered before profit starts.</li><li><strong>CVP:</strong> Cost-volume-profit analysis.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Every unit sold contributes toward fixed costs first; after break-even, it contributes to profit.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Break-even units = fixed costs / contribution margin per unit. Break-even sales dollars = fixed costs / contribution margin ratio.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Identify</strong> the break-even point on a cost-volume-profit graph.</li>
+    <li><strong>Calculate</strong> break-even units = fixed costs ÷ contribution margin per unit.</li>
+    <li><strong>Explain</strong> the loss zone and profit zone around break-even.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 6 · Break-even &amp; CVP</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const P=5, V=2, F=3000;            // price, variable, fixed
+const CM=P-V, BE=F/CM;             // 3, 1000
+const MAXU=2000, MAXY=10000, X0=55,X1=500,Y0=250,Y1=20;
+const xs=u=>X0+(u/MAXU)*(X1-X0), ys=d=>Y0-(d/MAXY)*(Y0-Y1);
+function fmt(n){ const s=Math.abs(n).toLocaleString(); return n<0?'($'+s+')':'$'+s; }
+
+(function init(){
+  let g='';
+  for(let d=0;d<=10000;d+=2000){ g+=`<line x1="55" y1="${ys(d)}" x2="500" y2="${ys(d)}" stroke="#eef2f6"/><text x="50" y="${ys(d)+4}" text-anchor="end" font-size="9" fill="#9aa7b6">${d/1000}k</text>`; }
+  for(let u=0;u<=2000;u+=500){ g+=`<text x="${xs(u)}" y="264" text-anchor="middle" font-size="9" fill="#9aa7b6">${u}</text>`; }
+  $('grid').innerHTML=g;
+  // lines
+  L('lineRev', xs(0),ys(0), xs(MAXU),ys(P*MAXU));
+  L('lineCost', xs(0),ys(F), xs(MAXU),ys(F+V*MAXU));
+  // zones
+  $('lossZone').setAttribute('points', `${xs(0)},${ys(0)} ${xs(BE)},${ys(P*BE)} ${xs(0)},${ys(F)}`);
+  $('profitZone').setAttribute('points', `${xs(BE)},${ys(P*BE)} ${xs(MAXU)},${ys(P*MAXU)} ${xs(MAXU)},${ys(F+V*MAXU)}`);
+  // BE dot
+  $('beDot').setAttribute('cx',xs(BE)); $('beDot').setAttribute('cy',ys(P*BE));
+  $('beLabel').setAttribute('x',xs(BE)-20); $('beLabel').setAttribute('y',ys(P*BE)-10);
+})();
+function L(id,x1,y1,x2,y2){ const e=$(id); e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2); }
+
+function update(){
+  const u=+$('vol').value; $('volLabel').textContent=u;
+  const rev=P*u, cost=F+V*u, profit=rev-cost;
+  $('ro-rev').textContent=fmt(rev); $('ro-cost').textContent=fmt(cost); $('ro-profit').textContent=fmt(profit);
+  const box=$('roProfit'), pv=$('ro-profit');
+  if(profit>0){ box.style.borderColor='#34d399'; box.style.background='#ecfdf5'; pv.style.color='#059669'; }
+  else if(profit<0){ box.style.borderColor='#f87171'; box.style.background='#fef2f2'; pv.style.color='#dc2626'; }
+  else { box.style.borderColor='#d97706'; box.style.background='#fffbeb'; pv.style.color='#b45309'; }
+  L('marker', xs(u),Y0, xs(u),Y1);
+  $('dotRev').setAttribute('cx',xs(u)); $('dotRev').setAttribute('cy',ys(rev));
+  $('dotCost').setAttribute('cx',xs(u)); $('dotCost').setAttribute('cy',ys(cost));
+}
+let predicted=false;
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='loss', fb)) return; predicted=true; if(ans==='loss'){ fb.textContent='✅ Correct! 800 lattes is below the 1,000 break-even, so the shop still has a loss of $600. Slide to 800 to confirm.'; fb.style.color='#059669'; $('vol').value=800; update(); }
+  else { fb.textContent='❌ It\'s a loss. Break-even is 1,000 lattes; at 800 the shop is $600 short. Slide to 800 and check the profit box.'; fb.style.color='#dc2626'; $('vol').value=800; update(); }
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: at break-even, total revenue equals total costs, so profit is exactly $0.",
+    "err": "Not quite. Solution: break-even does not mean high profit or low sales; it means profit equals zero because revenue just covers all fixed and variable costs."
+  },
+  "q2": {
+    "ok": "Correct. Solution: break-even units = fixed costs / contribution margin per unit. CM per unit = $5 - $2 = $3, so $3,000 / $3 = 1,000 units.",
+    "err": "Not quite. Solution: first compute contribution margin per unit: price $5 - variable cost $2 = $3. Then divide fixed costs by CM: $3,000 / $3 = 1,000 units."
+  },
+  "q3": {
+    "ok": "Correct. Solution: each unit sold contributes its contribution margin toward fixed costs first. After fixed costs are covered, additional contribution margin becomes profit.",
+    "err": "Not quite. Solution: sales dollars first cover variable cost. The leftover contribution margin is what covers fixed costs and then profit."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; const s=$('vol'); if(e.key==='ArrowRight'){ s.value=Math.min(2000,+s.value+50); update(); } if(e.key==='ArrowLeft'){ s.value=Math.max(0,+s.value-50); update(); } });
+update();
+</script>
+</body>
+</html>

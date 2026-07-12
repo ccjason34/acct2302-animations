@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Residual Income - Above the Required Return</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;
+    --accent:#6d28d9;--accent2:#a78bfa;--green:#059669;--gold:#b45309;
+    --red:#dc2626;--blue:#2563eb;--shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1040px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}
+  .kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}
+  h1{font-size:clamp(1.3rem,3.4vw,1.9rem);font-weight:850;line-height:1.15}
+  .subtitle{color:var(--muted);font-size:.96rem;max-width:780px;margin:.55rem auto 0}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}
+  .tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}
+  .tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}
+
+  .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin-bottom:1rem}
+  .fact{background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.65rem .75rem;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.08)}
+  .fact-label{display:block;color:var(--muted);font-size:.66rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;line-height:1.15}
+  .fact-val{display:block;color:var(--ink);font-size:1.12rem;font-weight:900;line-height:1.2;margin-top:.15rem;overflow-wrap:anywhere}
+  .story{border:1px solid rgba(109,40,217,.22);background:#f5f3ff;border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;text-align:center;font-size:.94rem;font-weight:800;color:#4c1d95}
+
+  .control-row{display:flex;gap:.55rem;justify-content:center;flex-wrap:wrap;margin:.35rem 0 1rem}
+  .btn{border:0;border-radius:9px;padding:.58rem 1rem;font-size:.85rem;font-weight:900;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(23,34,51,.10)}
+  .btn:focus-visible{outline:3px solid #1116;outline-offset:2px}
+  .btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .btn-green{background:linear-gradient(135deg,#059669,#34d399)}
+  .btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  .btn:disabled{opacity:.46;cursor:not-allowed}
+
+  .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .step{border:2px solid var(--line);border-radius:12px;background:#f8fafc;padding:.85rem;min-height:158px;display:grid;gap:.45rem;align-content:start;opacity:.55;transition:all .2s}
+  .step.on{opacity:1;border-color:#c4b5fd;background:#faf5ff}
+  .step-num{color:var(--accent);font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .step h2{font-size:1rem;line-height:1.25}
+  .formula{background:#fff;border:1px solid var(--line);border-radius:9px;padding:.55rem;font-weight:900;font-size:.92rem;text-align:center}
+  .formula b{color:var(--accent)}
+  .plain{color:#334155;font-size:.86rem}
+  .result{font-size:1.55rem;font-weight:950;text-align:center;color:var(--accent);line-height:1.1}
+  .mini-note{font-size:.78rem;color:var(--muted);font-weight:800;text-align:center}
+
+  .lab{margin-top:1rem;border:1px solid var(--line);border-radius:14px;background:#fff;padding:1rem}
+  .lab-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:.8rem}
+  .lab-head h2{font-size:1.02rem;line-height:1.2}
+  .scenario-row{display:flex;gap:.45rem;flex-wrap:wrap}
+  .scenario-btn{border:2px solid var(--line);background:#f8fafc;color:var(--ink);border-radius:8px;padding:.42rem .7rem;font-size:.78rem;font-weight:900;cursor:pointer}
+  .scenario-btn.active{background:#ecfdf5;border-color:#34d399;color:#047857}
+  .comparison{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;align-items:stretch}
+  .change-strip{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+  .change-card{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.65rem;text-align:center;display:grid;gap:.12rem}
+  .change-card span{color:var(--muted);font-size:.65rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .change-card strong{font-size:1.1rem;font-weight:950;color:var(--ink);line-height:1.15}
+  .change-card em{font-style:normal;color:var(--muted);font-size:.75rem;font-weight:800;line-height:1.25}
+  .direction-strip{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+  .direction-card,.direction-summary{border:2px solid var(--line);border-radius:10px;background:#fff;padding:.65rem;text-align:center;display:grid;gap:.12rem;align-content:center}
+  .direction-card span,.direction-summary span{color:var(--muted);font-size:.65rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .direction-card strong,.direction-summary strong{font-size:1.05rem;font-weight:950;line-height:1.15;color:var(--ink)}
+  .direction-card em,.direction-summary em{font-style:normal;color:var(--muted);font-size:.74rem;font-weight:800;line-height:1.25}
+  .direction-card.up{border-color:#86efac;background:#ecfdf5}
+  .direction-card.up strong{color:var(--green)}
+  .direction-card.down{border-color:#fed7aa;background:#fff7ed}
+  .direction-card.down strong{color:var(--gold)}
+  .direction-summary.mixed{border-color:#c4b5fd;background:#f5f3ff}
+  .direction-summary.mixed strong{color:var(--accent)}
+  .direction-summary.same-down{border-color:#fed7aa;background:#fff7ed}
+  .direction-summary.same-down strong{color:#b45309}
+  .metric-card{border:2px solid var(--line);border-radius:12px;background:#f8fafc;padding:.85rem;text-align:center;display:grid;gap:.35rem}
+  .metric-card.good{border-color:#a7f3d0;background:#ecfdf5}
+  .metric-card.warn{border-color:#fed7aa;background:#fff7ed}
+  .metric-label{color:var(--muted);font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .metric-value{font-size:1.9rem;font-weight:950;line-height:1.05}
+  .metric-card.good .metric-value{color:var(--green)}
+  .metric-card.warn .metric-value{color:var(--gold)}
+  .metric-card.bad .metric-value{color:var(--red)}
+  .bar-track{height:14px;background:#e8eef5;border-radius:999px;overflow:hidden}
+  .bar-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#c4b5fd,var(--accent));transition:width .25s}
+  .metric-card.good .bar-fill{background:linear-gradient(90deg,#86efac,#059669)}
+  .metric-card.warn .bar-fill{background:linear-gradient(90deg,#fcd34d,#d97706)}
+  .decision{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;background:#f9fbfd;color:#334155;font-size:.88rem;font-weight:800;text-align:center}
+  .decision strong{color:var(--accent)}
+
+  .predict{border:2px dashed var(--accent);background:#f5f3ff;border-radius:12px;padding:.85rem 1rem;margin:1rem 0}
+  .pq{font-weight:850;font-size:.92rem;margin-bottom:.5rem}
+  .pbtn{padding:.45rem .9rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:850;font-size:.84rem;cursor:pointer;margin:.2rem}
+  .pbtn:hover{background:#ede9fe}
+  .pfb{margin-top:.5rem;font-size:.84rem;font-weight:750;min-height:1rem}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}
+  .trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}
+  .trap p{font-size:.86rem;color:#7c5310}
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--blue)}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800}
+  .case-source a{color:var(--blue);text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+
+  .practice{display:grid;gap:1rem}
+  .q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}
+  .q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:850}
+  .q-text{font-size:1rem;font-weight:850;margin:.3rem 0 .8rem}
+  .opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}
+  .opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}
+  .opt input{accent-color:var(--accent)}
+  .opt.correct{border-color:#34d399;background:#ecfdf5}
+  .opt.wrong{border-color:#f87171;background:#fef2f2}
+  .q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}
+  .q-fb.ok{color:#059669}
+  .q-fb.err{color:#dc2626}
+  .practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}
+  .score{font-size:1.05rem;font-weight:900;display:none}
+
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1rem auto 0;max-width:820px}
+  .lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}
+  .lo ul{list-style:none;display:grid;gap:.35rem}
+  .lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}
+  .lo li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:900}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:820px){.facts,.steps,.comparison,.change-strip,.direction-strip,.case-grid,.support-grid{grid-template-columns:1fr}.lab-head{align-items:flex-start}.scenario-btn{flex:1 1 100%}}
+  @media(max-width:560px){.wrap{padding:1rem .65rem 2rem}.panel{padding:.9rem}.metric-value{font-size:1.55rem}.btn{width:100%}}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 11 · Responsibility Centers</div>
+  <h1>Residual Income: Above the Required Return</h1>
+  <p class="subtitle">Residual income asks a dollar question: after the division covers the return the company requires on its assets, how much operating income is left?</p>
+</header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">📊 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts" aria-label="Scenario facts">
+    <div class="fact"><span class="fact-label">Operating income</span><span class="fact-val">$160,000</span></div>
+    <div class="fact"><span class="fact-label">Average operating assets</span><span class="fact-val">$800,000</span></div>
+    <div class="fact"><span class="fact-label">Required return</span><span class="fact-val">12%</span></div>
+    <div class="fact"><span class="fact-label">Project choices</span><span class="fact-val">+$15,000 or +$10,000 on +$100,000</span></div>
+  </div>
+
+  <div class="story">The project earns 15% ($15,000 / $100,000). That is below the division's current 20% ROI, but above the company's 12% required return.</div>
+
+  <div class="control-row" aria-label="Animation steps">
+    <button class="btn btn-accent" id="step1Btn" onclick="showStep(1)">1 · Required Return</button>
+    <button class="btn btn-accent" id="step2Btn" onclick="showStep(2)" disabled>2 · Residual Income</button>
+    <button class="btn btn-green" id="step3Btn" onclick="showStep(3)" disabled>3 · Project Decision</button>
+    <button class="btn btn-gray" onclick="resetSteps()">Reset</button>
+  </div>
+
+  <div class="steps" aria-label="Residual income calculation steps">
+    <article class="step" id="step1">
+      <div class="step-num">Step 1</div>
+      <h2>Charge the division for using assets.</h2>
+      <div class="formula">$800,000 x 12% = <b>$96,000</b></div>
+      <p class="plain">This is the required return on the assets the division controls.</p>
+    </article>
+    <article class="step" id="step2">
+      <div class="step-num">Step 2</div>
+      <h2>Subtract that required return from income.</h2>
+      <div class="formula">$160,000 - $96,000 = <b>$64,000</b></div>
+      <p class="plain">The division earned $64,000 above the minimum return expected.</p>
+    </article>
+    <article class="step" id="step3">
+      <div class="step-num">Step 3</div>
+      <h2>Accept projects that add residual income.</h2>
+      <div class="formula">$175,000 - $108,000 = <b>$67,000</b></div>
+      <p class="plain">With the project, residual income rises by $3,000 even though ROI falls.</p>
+    </article>
+  </div>
+
+  <section class="lab" aria-label="Decision lab">
+    <div class="lab-head">
+      <h2>Decision Lab: ROI percentage vs. residual income dollars</h2>
+      <div class="scenario-row" role="group" aria-label="Choose a scenario">
+        <button class="scenario-btn active" id="scBase" onclick="setScenario('base')">Base only</button>
+        <button class="scenario-btn" id="scGood" onclick="setScenario('good')">15%: ROI down, RI up</button>
+        <button class="scenario-btn" id="scWeak" onclick="setScenario('weak')">10%: both down</button>
+      </div>
+    </div>
+    <div class="comparison">
+      <div class="change-strip" aria-label="Selected case changes">
+        <div class="change-card">
+          <span>Operating income</span>
+          <strong id="incomeTotal">$160,000</strong>
+          <em id="incomeDelta">Base only</em>
+        </div>
+        <div class="change-card">
+          <span>Total investment / assets</span>
+          <strong id="assetTotal">$800,000</strong>
+          <em id="assetDelta">Base only</em>
+        </div>
+        <div class="change-card">
+          <span>Project added</span>
+          <strong id="projectAdded">None</strong>
+          <em id="projectRate">No new project</em>
+        </div>
+      </div>
+      <div class="direction-strip" aria-label="Direction compared with base case">
+        <div class="direction-card" id="roiDirection">
+          <span>ROI direction</span>
+          <strong id="roiDirectionText">Starting point</strong>
+          <em id="roiDirectionDetail">20.0% base ROI</em>
+        </div>
+        <div class="direction-card" id="riDirection">
+          <span>Residual income direction</span>
+          <strong id="riDirectionText">Starting point</strong>
+          <em id="riDirectionDetail">$64,000 base RI</em>
+        </div>
+        <div class="direction-summary" id="directionSummary">
+          <span>What to notice</span>
+          <strong>Choose the 15% project</strong>
+          <em>It makes ROI and RI move in different directions.</em>
+        </div>
+      </div>
+      <div class="metric-card warn" id="roiCard">
+        <div class="metric-label">ROI</div>
+        <div class="metric-value" id="roiValue">20.0%</div>
+        <div class="bar-track"><div class="bar-fill" id="roiFill"></div></div>
+        <div class="mini-note" id="roiNote">$160,000 / $800,000</div>
+      </div>
+      <div class="metric-card good" id="riCard">
+        <div class="metric-label">Residual Income</div>
+        <div class="metric-value" id="riValue">$64,000</div>
+        <div class="bar-track"><div class="bar-fill" id="riFill"></div></div>
+        <div class="mini-note" id="riNote">$160,000 - ($800,000 x 12%)</div>
+      </div>
+      <div class="decision" id="decisionText"><strong>Base case:</strong> before any new project, the division earns $64,000 above required return.</div>
+    </div>
+  </section>
+
+  <div class="predict">
+    <div class="pq">Predict: the 15% project would lower the division's ROI from 20.0% to 19.4%, but it is above the 12% required return. Residual income says to...</div>
+    <button class="pbtn" onclick="predict('accept')">Accept</button>
+    <button class="pbtn" onclick="predict('reject')">Reject</button>
+    <button class="pbtn" onclick="predict('ignore')">Ignore assets</button>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>Common Trap</h3>
+    <p>A lower average ROI does not automatically mean a bad project. If the project earns more than the required return, it adds residual income and creates value.</p>
+  </div>
+
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: Xbox Inside Microsoft</h3>
+    <p>A Yahoo Finance/GameSpot article describes an analyst's argument that Xbox might be better as a separate company. The accounting issue sounds familiar: Xbox may be valuable, but gaming can have lower margins than Microsoft businesses such as Azure or Windows. If Xbox earns a lower ROI than those higher-return businesses, keeping Xbox inside Microsoft can pull down Microsoft's overall average ROI.</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>Why other units can have high ROI</strong><p>Software and cloud products can scale. After the platform is built, extra licenses, subscriptions, or cloud usage may add income without the same amount of new assets.</p></div>
+      <div class="case-card"><strong>Why Xbox ROI may look lower</strong><p>Gaming can require heavy investment in consoles, studios, game content, acquisitions, subscriptions, and marketing. More assets and lower margins can reduce ROI.</p></div>
+      <div class="case-card"><strong>Company-wide effect</strong><p>If Azure and Windows have very high ROI, adding a lower-ROI Xbox division can lower Microsoft's overall ROI, even if Xbox is still profitable.</p></div>
+    </div>
+    <p><strong>Residual income question:</strong> Should Microsoft judge Xbox only by whether it lowers the average ROI, or also ask whether Xbox earns dollars above the required return and supports Microsoft's strategy?</p>
+    <p class="case-source">Source for discussion: <a href="https://finance.yahoo.com/news/xbox-spun-off-microsoft-expert-191600014.html" target="_blank" rel="noopener">Yahoo Finance/GameSpot, "Xbox Should Be Spun Off From Microsoft, Expert Says" (Feb. 24, 2026)</a>. This class case uses the article as a discussion prompt; the numbers above are illustrative.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Operating income is $160,000, average operating assets are $800,000, and the required return is 12%. What is residual income?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) $64,000</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) $96,000</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) $160,000</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) $20,000</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">A project earns 15%, and the company's required return is 12%. What does residual income focus on?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Whether the project adds dollars above the required return</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Whether the project keeps the old average ROI unchanged</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Whether the project has the highest sales price</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Whether the project uses no assets</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Why can residual income reduce the ROI trap?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) It rewards dollar income above the required return, not only a percentage average.</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) It ignores operating income.</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) It treats every project with a lower ROI as bad.</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) It removes assets from performance evaluation.</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">Try Again</button>
+    </div>
+  </div>
+</section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Residual income helps evaluate investment centers without rejecting useful projects just because they lower average ROI.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Required return:</strong> the minimum dollar return expected from assets.</li><li><strong>Residual income:</strong> operating income left after the required return.</li><li><strong>ROI trap:</strong> rejecting a good project to protect a high average ROI.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>If a project earns more than the required return, residual income increases.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Required return = required rate x average operating assets. Residual income = operating income - required return.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Calculate</strong> the required return on average operating assets.</li>
+    <li><strong>Calculate</strong> residual income.</li>
+    <li><strong>Explain</strong> why residual income can avoid the ROI trap.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) - Ch 11.5 · Residual income</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try{
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  }catch(err){}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if(correct){ window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if(tries === 1){
+    fb.textContent = hint || 'Hint: compare the project return with the required return, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $ = id => document.getElementById(id);
+const baseIncome = 160000;
+const baseAssets = 800000;
+const scenarios = {
+  base:{income:160000,assets:800000,projectIncome:0,projectAssets:0,projectReturn:null,label:'Base case',note:'before any new project, the division earns $64,000 above required return.'},
+  good:{income:175000,assets:900000,projectIncome:15000,projectAssets:100000,projectReturn:0.15,label:'15% project',note:'income increases by $15,000 and total investment/assets increase by $100,000. ROI moves down from 20.0% to 19.4%, but residual income moves up from $64,000 to $67,000.'},
+  weak:{income:170000,assets:900000,projectIncome:10000,projectAssets:100000,projectReturn:0.10,label:'10% project',note:'income increases by $10,000 and total investment/assets increase by $100,000. Because the project earns less than the 12% required return, both ROI and residual income move down.'}
+};
+const requiredRate = 0.12;
+const baseRoi = baseIncome / baseAssets;
+const baseRi = baseIncome - (baseAssets * requiredRate);
+let highestStep = 0;
+let predicted = false;
+function fmt(n){
+  const s = Math.round(Math.abs(n)).toLocaleString();
+  return n < 0 ? '-$' + s : '$' + s;
+}
+function pct(n){ return (n * 100).toFixed(1) + '%'; }
+function showStep(n){
+  highestStep = Math.max(highestStep, n);
+  [1,2,3].forEach(i => $('step'+i).classList.toggle('on', i <= highestStep));
+  $('step2Btn').disabled = highestStep < 1;
+  $('step3Btn').disabled = highestStep < 2;
+  if(n === 3) setScenario('good');
+}
+function resetSteps(){
+  highestStep = 0;
+  [1,2,3].forEach(i => $('step'+i).classList.remove('on'));
+  $('step2Btn').disabled = true;
+  $('step3Btn').disabled = true;
+  setScenario('base');
+  resetPredictGates();
+  predicted = false;
+  $('pfb').textContent = '';
+}
+function setScenario(key){
+  const s = scenarios[key];
+  const roi = s.income / s.assets;
+  const req = s.assets * requiredRate;
+  const ri = s.income - req;
+  const projectText = s.projectIncome ? '+' + fmt(s.projectIncome) + ' income' : 'None';
+  $('roiValue').textContent = pct(roi);
+  $('riValue').textContent = fmt(ri);
+  $('incomeTotal').textContent = fmt(s.income);
+  $('assetTotal').textContent = fmt(s.assets);
+  $('incomeDelta').textContent = s.projectIncome ? fmt(baseIncome) + ' + ' + fmt(s.projectIncome) : 'Base only';
+  $('assetDelta').textContent = s.projectAssets ? fmt(baseAssets) + ' + ' + fmt(s.projectAssets) : 'Base only';
+  $('projectAdded').textContent = projectText;
+  $('projectRate').textContent = s.projectReturn ? '+' + fmt(s.projectAssets) + ' investment, ' + pct(s.projectReturn) + ' return' : 'No new project';
+  updateDirection(key, roi, ri);
+  $('roiNote').textContent = fmt(s.income) + ' / ' + fmt(s.assets);
+  $('riNote').textContent = fmt(s.income) + ' - (' + fmt(s.assets) + ' x 12%)';
+  $('roiFill').style.width = Math.min(100, roi / 0.25 * 100) + '%';
+  $('riFill').style.width = Math.min(100, Math.max(0, ri) / 70000 * 100) + '%';
+  $('decisionText').innerHTML = '<strong>' + s.label + ':</strong> ' + s.note;
+  ['Base','Good','Weak'].forEach(name => $('sc'+name).classList.toggle('active', key.toLowerCase() === name.toLowerCase()));
+  $('riCard').classList.toggle('good', ri >= 64000);
+  $('riCard').classList.toggle('bad', ri < 64000);
+}
+function setDirectionCard(cardId, textId, detailId, direction, detail){
+  const card = $(cardId);
+  card.classList.remove('up','down');
+  if(direction === 'Up') card.classList.add('up');
+  if(direction === 'Down') card.classList.add('down');
+  $(textId).textContent = direction;
+  $(detailId).textContent = detail;
+}
+function updateDirection(key, roi, ri){
+  const roiDirection = roi > baseRoi ? 'Up' : roi < baseRoi ? 'Down' : 'Starting point';
+  const riDirection = ri > baseRi ? 'Up' : ri < baseRi ? 'Down' : 'Starting point';
+  setDirectionCard('roiDirection','roiDirectionText','roiDirectionDetail',roiDirection,pct(baseRoi) + ' to ' + pct(roi));
+  setDirectionCard('riDirection','riDirectionText','riDirectionDetail',riDirection,fmt(baseRi) + ' to ' + fmt(ri));
+  const summary = $('directionSummary');
+  summary.classList.remove('mixed','same-down');
+  if(key === 'good'){
+    summary.classList.add('mixed');
+    summary.innerHTML = '<span>What to notice</span><strong>Different direction</strong><em>ROI goes down, but residual income goes up.</em>';
+  }else if(key === 'weak'){
+    summary.classList.add('same-down');
+    summary.innerHTML = '<span>What to notice</span><strong>Both down</strong><em>This is the simpler case: 10% is below the 12% required return.</em>';
+  }else{
+    summary.innerHTML = '<span>What to notice</span><strong>Choose the 15% project</strong><em>It makes ROI and RI move in different directions.</em>';
+  }
+}
+function predict(ans){
+  if(predicted) return;
+  const fb = $('pfb');
+  if(!predictGate('pfb', ans === 'accept', fb)) return;
+  predicted = true;
+  if(ans === 'accept'){
+    fb.textContent = 'Correct. The project earns 15%, which is above the 12% required return, so it adds $3,000 of residual income.';
+    fb.style.color = '#059669';
+  }else{
+    fb.textContent = 'Not quite. Residual income accepts the project because it earns more than the 12% required return, even though average ROI drops.';
+    fb.style.color = '#dc2626';
+  }
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers = { q1:'A', q2:'A', q3:'A' };
+const fbk = {
+  q1:{
+    ok:'Correct. Solution: required return = $800,000 x 12% = $96,000. Residual income = $160,000 - $96,000 = $64,000.',
+    err:'Not quite. Solution: first find the required return: $800,000 x 12% = $96,000. Then subtract it from operating income: $160,000 - $96,000 = $64,000.'
+  },
+  q2:{
+    ok:'Correct. Solution: residual income asks whether the project adds dollars after covering the required return.',
+    err:'Not quite. Solution: residual income is not trying to protect the old average ROI. It asks whether the project earns more than the required return in dollars.'
+  },
+  q3:{
+    ok:'Correct. Solution: ROI is a percentage average; residual income rewards extra dollars above the required return, so managers are less likely to reject good projects just to protect ROI.',
+    err:'Not quite. Solution: residual income still uses operating income and assets, but it focuses on dollars above the required return instead of only the ROI percentage.'
+  }
+};
+function checkPractice(){
+  let score = 0;
+  ['q1','q2','q3'].forEach(q => {
+    const card = $(q);
+    const sel = card.querySelector('input[name="'+q+'"]:checked');
+    const fb = $('fb' + q.slice(1));
+    card.querySelectorAll('.opt').forEach(o => o.classList.add('locked'));
+    card.querySelectorAll('input').forEach(r => r.disabled = true);
+    if(!sel){
+      fb.textContent = 'Pick an answer.';
+      fb.className = 'q-fb err';
+      return;
+    }
+    const val = sel.value;
+    const cor = answers[q];
+    card.querySelectorAll('.opt').forEach(o => {
+      const v = o.querySelector('input').value;
+      if(v === cor) o.classList.add('correct');
+      else if(v === val) o.classList.add('wrong');
+    });
+    if(val === cor){
+      score++;
+      fb.textContent = fbk[q].ok;
+      fb.className = 'q-fb ok';
+    }else{
+      fb.textContent = fbk[q].err;
+      fb.className = 'q-fb err';
+    }
+  });
+  if(score === 3) markLessonComplete();
+  const sb = $('score');
+  sb.style.display = 'block';
+  sb.textContent = score === 3 ? 'Perfect! 3 / 3' : 'Practice result: ' + score + ' / 3 - review the feedback and try again.';
+  sb.style.color = score === 3 ? '#059669' : '#b45309';
+  $('retry').style.display = score < 3 ? '' : 'none';
+}
+function retryPractice(){
+  ['q1','q2','q3'].forEach(q => {
+    const card = $(q);
+    card.querySelectorAll('.opt').forEach(o => o.classList.remove('locked','correct','wrong'));
+    card.querySelectorAll('input').forEach(r => { r.checked = false; r.disabled = false; });
+    $('fb' + q.slice(1)).textContent = '';
+  });
+  $('score').style.display = 'none';
+  $('retry').style.display = 'none';
+}
+setScenario('base');
+</script>
+</body>
+</html>

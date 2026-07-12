@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Does It Change With the Decision? The Relevant-Cost Filter</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#0891b2; --accent2:#38bdf8; --keep:#0891b2; --drop:#94a3b8; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:710px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .scenario{ text-align:center; background:#ecfeff; border:1px solid #a5f0fb; border-radius:10px; padding:.6rem .8rem; font-size:.86rem; font-weight:700; color:#0e7490; margin-bottom:.8rem; }
+  .scenario .assume{ display:block; margin-top:.25rem; font-size:.74rem; font-weight:700; color:#155e75; }
+
+  .item-zone{ min-height:64px; display:flex; justify-content:center; align-items:center; margin-bottom:.5rem; }
+  .cost-card{ background:#fff; border:2px solid var(--line); border-radius:12px; padding:.7rem 1.1rem; box-shadow:var(--shadow); text-align:center; max-width:360px; }
+  .cost-card .cc-name{ font-weight:800; font-size:1rem; } .cost-card .cc-amt{ color:var(--muted); font-weight:800; font-size:.85rem; }
+  .cost-card.gone{ opacity:0; transform:translateY(-14px) scale(.9); transition:all .4s; }
+
+  .filter-label{ text-align:center; font-size:.78rem; font-weight:800; color:var(--muted); margin-bottom:.4rem; }
+  .predict-row{ display:flex; gap:.6rem; justify-content:center; margin-bottom:.6rem; }
+  .pbtn{ padding:.55rem 1.2rem; border-radius:10px; font-weight:800; font-size:.9rem; cursor:pointer; border:2px solid; background:#fff; }
+  .pbtn.keep{ border-color:var(--keep); color:var(--keep); } .pbtn.keep:hover{ background:#ecfeff; }
+  .pbtn.drop{ border-color:var(--drop); color:#475569; } .pbtn.drop:hover{ background:#f1f5f9; }
+  .verdict{ text-align:center; min-height:26px; font-weight:800; font-size:.88rem; }
+
+  .bins{ display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:.5rem; }
+  .bin{ border:2px solid; border-radius:14px; padding:.8rem; min-height:120px; }
+  .bin.keep{ border-color:#a5f0fb; background:#f0fdff; } .bin.drop{ border-color:#e2e8f0; background:#f8fafc; }
+  .bin h3{ font-size:.92rem; } .bin .sub{ font-size:.7rem; color:var(--muted); margin-bottom:.4rem; }
+  .chip{ display:inline-block; background:#fff; border:1px solid var(--line); border-radius:999px; padding:.25rem .6rem; margin:.2rem .2rem 0 0; font-size:.74rem; font-weight:700; animation:pop .35s ease; }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .chip.drop{ text-decoration:line-through; color:#94a3b8; }
+
+  .decision{ margin-top:1rem; display:none; }
+  .decision.show{ display:block; animation:pop .4s ease; }
+  .vs{ display:grid; grid-template-columns:1fr auto 1fr; gap:.6rem; align-items:center; text-align:center; }
+  .opt-box{ border:2px solid var(--line); border-radius:12px; padding:.8rem; } .opt-box .ov{ font-size:1.6rem; font-weight:900; }
+  .opt-box.win{ border-color:#34d399; background:#ecfdf5; } .opt-box.win .ov{ color:#059669; }
+  .vs .mid{ font-weight:900; color:var(--muted); }
+  .verdict-final{ text-align:center; margin-top:.7rem; font-size:1.05rem; font-weight:900; color:#059669; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .bins{ grid-template-columns:1fr;} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 7 · Relevant Costs</div>
+  <h1>Does It Change With the Decision? 🔍</h1>
+  <p class="subtitle">A factory can <strong>make</strong> a part for itself or <strong>buy</strong> it from a supplier. Run each cost through the relevant-cost filter: keep what changes with the decision, drop what doesn't.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🔍 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Buy price</span><span class="fact-val">$9 per unit</span></div>
+    <div class="fact"><span class="fact-label">Make costs</span><span class="fact-val">$10 relevant/unit</span></div>
+    <div class="fact"><span class="fact-label">Sunk cost</span><span class="fact-val">$50,000 ignored</span></div>
+    <div class="fact"><span class="fact-label">Assumption</span><span class="fact-val">Quality/capacity same</span></div>
+  </div>
+<div class="scenario">Decision: should we MAKE this part in-house, or BUY it for <strong>$9 per unit</strong>?<span class="assume">Assume freed capacity has no alternative use and quality/reliability are the same.</span></div>
+
+  <div class="item-zone" id="itemZone"></div>
+  <div class="filter-label">⬇️ Is this cost RELEVANT to the make-or-buy decision? ⬇️</div>
+  <div class="predict-row" id="predictRow">
+    <button class="pbtn keep" onclick="sortItem('relevant')">✅ Relevant (keep)</button>
+    <button class="pbtn drop" onclick="sortItem('irrelevant')">🚫 Irrelevant (drop)</button>
+  </div>
+  <div class="verdict" id="verdict" role="status" aria-live="polite">Classify the first cost.</div>
+
+  <div class="bins">
+    <div class="bin keep"><h3>✅ Relevant costs</h3><div class="sub">Differ between make and buy — these decide it</div><div id="binKeep"></div></div>
+    <div class="bin drop"><h3>🚫 Irrelevant costs</h3><div class="sub">Sunk or unavoidable — ignore them</div><div id="binDrop"></div></div>
+  </div>
+
+  <div class="decision" id="decision">
+    <div class="vs">
+      <div class="opt-box" id="boxMake"><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;">Relevant cost to MAKE</div><div class="ov" id="makeVal">$10</div><div style="font-size:.66rem;color:var(--muted)">per unit</div></div>
+      <div class="mid">vs</div>
+      <div class="opt-box" id="boxBuy"><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;">Cost to BUY</div><div class="ov" id="buyVal">$9</div><div style="font-size:.66rem;color:var(--muted)">per unit</div></div>
+    </div>
+    <div class="verdict-final" id="finalVerdict" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Ignore sunk and unavoidable costs. Including costs that do not change can flip the decision.</p>
+  </div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: The Concorde and Sunk Cost</h3>
+    <p>Britain and France kept funding the Concorde for years after it was clear the jet would never be commercially viable &mdash; over $2.8 billion spent and only 20 aircraft ever built &mdash; largely to avoid "wasting" the money already poured in. Economists named this mistake the "Concorde fallacy."</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>Already spent (sunk)</strong><p>The development billions were gone whether the project continued or stopped, so they could not be recovered either way.</p></div>
+      <div class="case-card"><strong>Actually relevant</strong><p>Only the future costs and revenues of continuing should have driven the keep-or-stop decision.</p></div>
+      <div class="case-card"><strong>The trap</strong><p>Leaders pressed on to avoid admitting a loss &mdash; the sunk-cost mistake this filter is built to remove.</p></div>
+    </div>
+    <p><strong>Relevant-cost question:</strong> should money already spent change whether you keep going on a project?</p>
+    <p class="case-source">Source for discussion: <a href="https://www.aviationfile.com/the-concorde-fallacy-a-cautionary-tale-about-sunk-costs/" target="_blank" rel="noopener">AviationFile, "The Concorde fallacy"</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">A relevant cost is one that:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Was incurred in the past</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Differs between the alternatives</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Is the largest cost</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Is always a fixed cost</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">$50,000 was spent last year on a machine. For today's make-or-buy decision, this cost is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Relevant — it was expensive</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Irrelevant — it's a sunk cost</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Relevant — it's a fixed cost</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Added to the buy price</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Relevant cost to make is $10/unit; buying costs $9/unit. The company should:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Make — it feels safer</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Buy — it saves $1 per unit</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Be indifferent</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Stop selling the product</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Relevant-cost thinking keeps decisions focused on costs and benefits that actually change.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Relevant cost:</strong> Future cost that differs across alternatives.</li><li><strong>Sunk cost:</strong> Past cost that cannot be changed.</li><li><strong>Avoidable cost:</strong> Cost that disappears if an option is chosen.</li><li><strong>Opportunity cost:</strong> Benefit given up by choosing another option.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Ignore sunk costs. Keep future amounts only when they differ between choices.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Decision impact = future revenues that change - future costs that change - opportunity costs.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Classify</strong> costs as relevant (differ between options) or irrelevant (sunk or unavoidable).</li>
+    <li><strong>Ignore</strong> sunk costs and allocated costs that continue either way.</li>
+    <li><strong>Decide</strong> make-or-buy using only the relevant costs.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 7 · Relevant costs &amp; make-or-buy</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const items=[
+  {name:"Direct materials to make", amt:"$4/unit", kind:"relevant", role:"make", note:"Only incurred if we make it — relevant."},
+  {name:"Direct labor to make", amt:"$3/unit", kind:"relevant", role:"make", note:"Disappears if we buy — relevant."},
+  {name:"Variable overhead to make", amt:"$2/unit", kind:"relevant", role:"make", note:"Varies with making — relevant."},
+  {name:"Supervisor salary (can be eliminated)", amt:"$1/unit", kind:"relevant", role:"make", note:"Avoidable if we stop making — relevant."},
+  {name:"Allocated factory rent", amt:"$3/unit", kind:"irrelevant", role:"none", note:"Continues whether we make or buy — irrelevant."},
+  {name:"Machine bought last year", amt:"$50,000", kind:"irrelevant", role:"none", note:"Sunk cost — already spent, gone either way."},
+  {name:"Supplier's price to buy", amt:"$9/unit", kind:"relevant", role:"buy", note:"Only incurred if we buy — relevant."},
+];
+let idx=0, predicted=false, makeCost=0, buyCost=0;
+
+function showItem(){
+  const zone=$('itemZone');
+  if(idx>=items.length){ zone.innerHTML='<div style="font-weight:800;color:#0891b2;">All costs filtered — see the decision below ⬇️</div>'; $('predictRow').style.display='none'; revealDecision(); return; }
+  const it=items[idx];
+  zone.innerHTML='<div class="cost-card" id="curCard"><div class="cc-name">'+it.name+'</div><div class="cc-amt">'+it.amt+'</div></div>';
+  predicted=false;
+}
+function sortItem(choice){
+  if(idx>=items.length || predicted) return;
+  const it=items[idx]; const correct=choice===it.kind; const v=$('verdict');
+  if(!predictGate('filter-'+idx, correct, v, 'Hint: keep only costs that change between make and buy; sunk or unavoidable costs drop out. Try once more.')) return;
+  predicted=true;
+  if(correct){ v.innerHTML='✅ Correct — <strong>'+it.kind+'</strong>. '+it.note; v.style.color='#059669'; }
+  else { v.innerHTML='❌ Actually <strong>'+it.kind+'</strong>. '+it.note; v.style.color='#dc2626'; }
+  const card=$('curCard'); if(card) card.classList.add('gone');
+  setTimeout(()=>{
+    if(it.kind==='relevant'){ const c=document.createElement('span'); c.className='chip'; c.textContent=it.name+' · '+it.amt; $('binKeep').appendChild(c);
+      if(it.role==='make') makeCost+=parseInt(it.amt.replace(/[^0-9]/g,''))||0;
+      if(it.role==='buy') buyCost+=parseInt(it.amt.replace(/[^0-9]/g,''))||0;
+    } else { const c=document.createElement('span'); c.className='chip drop'; c.textContent=it.name; $('binDrop').appendChild(c); }
+    idx++; showItem();
+  },400);
+}
+function revealDecision(){
+  $('makeVal').textContent='$'+makeCost; $('buyVal').textContent='$'+buyCost;
+  $('decision').classList.add('show');
+  const makeWins = makeCost<buyCost;
+  $('boxMake').classList.toggle('win', makeWins);
+  $('boxBuy').classList.toggle('win', !makeWins);
+  const diff=Math.abs(makeCost-buyCost);
+  $('finalVerdict').innerHTML = makeWins
+    ? '✅ MAKE the part — it\'s $'+diff+'/unit cheaper on relevant costs.'
+    : '✅ BUY the part — it saves $'+diff+'/unit. (Notice we ignored the sunk machine &amp; allocated rent.)';
+}
+function resetAll(){ resetPredictGates();
+  idx=0; predicted=false; makeCost=0; buyCost=0;
+  $('binKeep').innerHTML=''; $('binDrop').innerHTML=''; $('decision').classList.remove('show');
+  $('boxMake').classList.remove('win'); $('boxBuy').classList.remove('win');
+  $('predictRow').style.display='flex'; $('verdict').textContent='Classify the first cost.'; $('verdict').style.color='';
+  showItem();
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: a relevant cost is both future-oriented and different between alternatives. If a cost does not change because of the decision, it is not relevant.",
+    "err": "Not quite. Solution: relevant costs must affect the decision. They are future costs that differ across alternatives."
+  },
+  "q2": {
+    "ok": "Correct. Solution: the $50,000 spent last year is a sunk cost. It cannot be changed by today’s decision, so it should not affect the make-or-buy choice.",
+    "err": "Not quite. Solution: past costs are sunk. Even though the amount is real, it is not relevant because today’s decision cannot recover or change it."
+  },
+  "q3": {
+    "ok": "Correct. Solution: compare the relevant costs per unit. Making costs $10 and buying costs $9, so buying saves $1 per unit if quality and capacity issues are not different.",
+    "err": "Not quite. Solution: use only the costs that differ between alternatives. If making is $10 per unit and buying is $9 per unit, buying is cheaper by $1 per unit."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+showItem();
+</script>
+</body>
+</html>

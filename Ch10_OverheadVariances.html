@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Overhead Variances — Spending, Efficiency, Budget, and Volume</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#172233;--muted:#5d6a7a;--line:#d7e0ea;--panel:#fff;--accent:#3730a3;--accent2:#818cf8;--good:#059669;--bad:#dc2626;--warn:#b45309;--shadow:0 8px 26px rgba(23,34,51,.10)}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f8fafc,#edf3f7);color:var(--ink);min-height:100vh;line-height:1.5}
+  .wrap{width:min(1020px,100%);margin:0 auto;padding:1.5rem 1rem 3rem}
+  header{text-align:center}.kicker{color:var(--accent);font-size:.76rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}header h1{font-size:clamp(1.3rem,3.3vw,1.9rem);font-weight:800}.subtitle{color:var(--muted);font-size:.96rem;max-width:740px;margin:.55rem auto 0}
+  .lo{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;margin:1.25rem auto 0;max-width:780px}.lo h2{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem}.lo ul{list-style:none;display:grid;gap:.35rem}.lo li{font-size:.9rem;color:#384455;padding-left:1.4rem;position:relative}.lo li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:900}
+  .tab-bar{display:flex;gap:.5rem;justify-content:center;padding:1.25rem 0 .25rem}.tab-btn{padding:.45rem 1.5rem;border:2px solid var(--line);background:transparent;border-radius:20px;font-size:.88rem;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s}.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.tab-btn:hover:not(.active){border-color:#a0aec0;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1.25rem;margin-top:1rem}.facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}.assumption{max-width:760px;margin:0 auto 1rem;background:#f0fdfa;border:1px solid #99f6e4;border-left:5px solid #14b8a6;border-radius:10px;padding:.65rem .85rem;color:#115e59;font-size:.84rem;font-weight:750}
+  .variance-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:.85rem 0 1rem}
+  .variance-lane{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.8rem;box-shadow:0 4px 14px rgba(23,34,51,.06)}
+  .variance-lane h3{font-size:.9rem;color:var(--accent);margin-bottom:.45rem}
+  .signal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+  .signal-card{border:1px solid var(--line);border-radius:9px;background:#f8fafc;padding:.55rem}
+  .signal-k{display:block;font-size:.63rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);line-height:1.15}
+  .signal-v{display:block;font-size:.84rem;font-weight:850;color:#334155;line-height:1.35;margin-top:.2rem}
+  @media(max-width:820px){.variance-map,.signal-grid{grid-template-columns:1fr}}
+  .model{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:.6rem 0 1rem}.step-card{border:2px solid var(--line);border-radius:14px;background:#f9fbfd;padding:.85rem;opacity:.36;transform:translateY(8px);transition:all .35s}.step-card.on{opacity:1;transform:translateY(0);border-color:var(--accent2);background:#fff;box-shadow:0 6px 18px rgba(23,34,51,.10)}.step-k{font-size:.66rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.step-title{font-size:.98rem;font-weight:900;margin:.2rem 0;color:var(--accent)}.step-body{font-size:.86rem;color:#334155}.calc{font-weight:900;color:var(--ink);display:block;margin-top:.35rem}.result-good{color:var(--good);font-weight:900}.result-bad{color:var(--bad);font-weight:900}.range{display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:center;margin-top:.4rem}.range-box{border:1px solid var(--line);border-radius:10px;padding:.55rem;text-align:center;background:#f8fafc}.range-mid{font-weight:900;color:var(--muted)}
+  .predict{border:2px dashed var(--accent);background:#fff7ed;border-radius:12px;padding:.85rem 1rem;margin:.9rem 0}.predict .pq{font-weight:800;font-size:.9rem;margin-bottom:.5rem}.pbtn{padding:.45rem 1rem;border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;font-weight:800;font-size:.84rem;cursor:pointer;margin:.2rem}.pbtn:hover{background:#fff7ed}.pfb{margin-top:.5rem;font-size:.83rem;font-weight:750;min-height:1rem}
+  .status{min-height:28px;text-align:center;font-weight:850;font-size:.9rem;margin:.7rem 0}.controls{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}.btn{padding:.55rem 1.15rem;border:none;border-radius:9px;font-weight:850;font-size:.84rem;color:#fff;cursor:pointer}.btn:focus-visible{outline:3px solid #1116;outline-offset:2px}.btn:disabled{opacity:.4}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2))}.btn-gray{background:linear-gradient(135deg,#64748b,#94a3b8)}
+  
+  .decision-lab{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:.9rem;margin:.9rem 0;display:grid;gap:.75rem}
+  .decision-lab h3{font-size:.95rem;color:var(--accent);line-height:1.25}
+  .lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+  .lab-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .lab-card strong{display:block;font-size:.84rem;margin-bottom:.2rem}
+  .lab-card span,.lab-output,.lab-note{color:#334155;font-size:.84rem;line-height:1.45}
+  .lab-controls{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center}
+  .lab-btn{border:2px solid var(--accent);background:#fff;color:var(--accent);border-radius:8px;padding:.42rem .75rem;font-weight:850;font-size:.8rem;cursor:pointer}
+  .lab-btn.active,.lab-btn:hover{background:var(--accent);color:#fff}
+  .lab-output{border-left:5px solid var(--accent);background:#fff;border-radius:8px;padding:.65rem .8rem;font-weight:750}
+  .lab-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:.82rem}
+  .lab-table th,.lab-table td{border:1px solid var(--line);padding:.45rem .55rem;text-align:left}
+  .lab-table th{background:#eef6f8;color:var(--ink)}
+  .lab-table td:last-child{text-align:right;font-weight:850}
+  .lab-slider{width:min(420px,100%);accent-color:var(--accent)}
+  @media(max-width:760px){.lab-grid{grid-template-columns:1fr}.lab-table{font-size:.78rem}}
+  .trap{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f59e0b;border-radius:12px;padding:.85rem 1.1rem;margin-top:1rem}.trap h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:.3rem}.trap p{font-size:.86rem;color:#7c5310}
+  .practice{display:grid;gap:1rem}.q-card{border:2px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem}.q-num{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.q-text{font-size:1rem;font-weight:800;margin:.3rem 0 .8rem}.opt{display:flex;gap:.7rem;align-items:center;border:2px solid var(--line);border-radius:9px;padding:.6rem .85rem;cursor:pointer;font-size:.9rem;margin-bottom:.45rem}.opt:hover:not(.locked){border-color:#94a3b8;background:#f3f7fb}.opt input{accent-color:var(--accent)}.opt.correct{border-color:#34d399;background:#ecfdf5}.opt.wrong{border-color:#f87171;background:#fef2f2}.q-fb{font-size:.84rem;font-weight:750;margin-top:.4rem;min-height:1rem}.q-fb.ok{color:#059669}.q-fb.err{color:#dc2626}.practice-foot{text-align:center;display:grid;gap:.6rem;justify-items:center}.score{font-size:1.05rem;font-weight:900;display:none}
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.4rem 1rem .4rem;border-top:1px solid var(--line);margin-top:1.6rem}
+  @media(max-width:760px){.model{grid-template-columns:1fr}.range{grid-template-columns:1fr}.range-mid{display:none}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="kicker">Chapter 10 · Overhead Variances</div><h1>Overhead Variances: Four Signals</h1><p class="subtitle">Direct materials and labor variances are only part of standard costing. Overhead adds variable and fixed overhead signals.</p></header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views"><button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">⚙️ Animation</button><button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button></div>
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Standard variable overhead (VOH) rate</span><span class="fact-val">$4/DLH</span></div>
+    <div class="fact"><span class="fact-label">Actual variable overhead (VOH)</span><span class="fact-val">$8,820</span></div>
+    <div class="fact"><span class="fact-label">Actual DLH</span><span class="fact-val">2,100</span></div>
+    <div class="fact"><span class="fact-label">Standard DLH allowed</span><span class="fact-val">2,000</span></div>
+    <div class="fact"><span class="fact-label">Fixed overhead (FOH) budget</span><span class="fact-val">$10,000</span></div>
+    <div class="fact"><span class="fact-label">Actual fixed overhead (FOH)</span><span class="fact-val">$10,800</span></div>
+  </div>
+  <div class="assumption">Assumption: this page uses direct labor hours as the overhead activity base.</div>
+
+  <div class="variance-map" aria-label="Overhead variance signal map">
+    <div class="variance-lane">
+      <h3>Variable overhead asks two questions</h3>
+      <div class="signal-grid">
+        <div class="signal-card"><span class="signal-k">Spending</span><span class="signal-v">Did the overhead rate per hour change?</span></div>
+        <div class="signal-card"><span class="signal-k">Efficiency</span><span class="signal-v">Did we use more hours than allowed?</span></div>
+      </div>
+    </div>
+    <div class="variance-lane">
+      <h3>Fixed overhead asks two questions</h3>
+      <div class="signal-grid">
+        <div class="signal-card"><span class="signal-k">Budget</span><span class="signal-v">Did fixed OH spending exceed the budget?</span></div>
+        <div class="signal-card"><span class="signal-k">Volume</span><span class="signal-v">Did production volume differ from the planned base?</span></div>
+      </div>
+    </div>
+  </div>
+
+<div class="status" id="status" role="status" aria-live="polite">Click “Next step” to separate the overhead variance signals.</div>
+  <div class="controls"><button class="btn btn-accent" id="nextBtn" onclick="nextStep()">Next step</button><button class="btn btn-gray" onclick="resetAll()">↺ Reset</button></div>
+
+<div class="model">    <div class="step-card" id="s0"><div class="step-k">VOH Spending</div><div class="step-title">Actual Rate vs Standard Rate</div><div class="step-body">Actual variable OH was $8,820 for 2,100 DLH, or $4.20/DLH. Spending variance: ($4.20 − $4.00) × 2,100 = <span class="calc result-bad">$420 U</span></div></div>
+    <div class="step-card" id="s1"><div class="step-k">VOH Efficiency</div><div class="step-title">Actual Hours vs Standard Hours</div><div class="step-body">Efficiency variance: (2,100 actual hours − 2,000 standard hours) × $4 = <span class="calc result-bad">$400 U</span></div></div>
+    <div class="step-card" id="s2"><div class="step-k">Fixed OH Budget</div><div class="step-title">Actual Fixed OH vs Budget</div><div class="step-body">Budgeted fixed OH was $10,000. Actual fixed OH was $10,800. Budget variance = <span class="calc result-bad">$800 U</span></div></div>
+    <div class="step-card" id="s3"><div class="step-k">Fixed OH Volume</div><div class="step-title">Production Volume Signal</div><div class="step-body">Applied fixed OH: 2,000 standard hours × $5 = $10,000. No volume variance here because standard hours allowed equal denominator hours.</div></div></div>
+
+  <div class="decision-lab" aria-label="Overhead variance signal lab">
+    <h3>Pick The Variance Signal</h3>
+    <div class="lab-controls" role="group" aria-label="Choose overhead variance">
+      <button class="lab-btn" type="button" data-oh="spending" onclick="showOhVariance('spending')">VOH spending</button>
+      <button class="lab-btn" type="button" data-oh="efficiency" onclick="showOhVariance('efficiency')">VOH efficiency</button>
+      <button class="lab-btn" type="button" data-oh="budget" onclick="showOhVariance('budget')">FOH budget</button>
+      <button class="lab-btn" type="button" data-oh="volume" onclick="showOhVariance('volume')">FOH volume</button>
+    </div>
+    <div class="lab-output" id="ohOutput" role="status" aria-live="polite"></div>
+  </div>
+  <div class="predict"><div class="pq">Predict: actual hours are 2,100 and standard hours allowed are 2,000. The variable overhead efficiency variance is:</div><div><button class="pbtn" onclick="predict('unfav')">Unfavorable</button><button class="pbtn" onclick="predict('fav')">Favorable</button><button class="pbtn" onclick="predict('zero')">Zero</button></div><div class="pfb" id="pfb" role="status" aria-live="polite"></div></div><div class="trap"><h3>Common Trap</h3><p>Variable overhead efficiency is about the activity base, not whether the utility bill itself was high. Fixed overhead volume is a production-volume signal, not a cash-spending signal.</p></div>
+</section>
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none"><div class="practice">    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Actual VOH rate $4.20, standard VOH rate $4.00, actual hours 2,100. VOH spending variance is:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) $420 U</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) $420 F</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) $400 U</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) $0</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Which overhead variance focuses on whether the company used more activity hours than allowed?</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) Variable overhead spending variance</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) Variable overhead efficiency variance</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Fixed overhead budget variance</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Fixed overhead volume variance only</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">A fixed overhead budget variance is unfavorable when:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Actual fixed overhead is greater than budgeted fixed overhead</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Actual fixed overhead is less than budgeted fixed overhead</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Actual hours are greater than standard hours allowed</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Sales volume is greater than expected</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div><div class="practice-foot"><button class="btn btn-accent" onclick="checkPractice()">Check My Work</button><div class="score" id="score" role="status" aria-live="polite"></div><button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button></div></div></section>
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Overhead variances split one big overhead difference into signals managers can investigate.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Variable overhead (VOH) spending:</strong> Variable overhead rate difference.</li><li><strong>Variable overhead (VOH) efficiency:</strong> Activity hours used compared with hours allowed.</li><li><strong>Fixed overhead (FOH) budget:</strong> Actual fixed overhead compared with budget.</li><li><strong>Fixed overhead (FOH) volume:</strong> Production volume compared with denominator activity.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Variable overhead looks at rate and hours; fixed overhead separates spending from production volume.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>VOH spending = (AR - SR) x AH. VOH efficiency = (AH - SH) x SR. FOH budget = actual FOH - budgeted FOH.</p></details>
+</section>
+
+<div class="lo"><h2>Learning Objectives</h2><ul><li><strong>Separate</strong> variable overhead spending and efficiency variances.</li><li><strong>Separate</strong> fixed overhead budget and volume variances.</li><li><strong>Interpret</strong> what each overhead variance is trying to signal.</li></ul></div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 10 · Overhead variances</footer>
+</div>
+<script>
+const PROGRESS_KEY='acct2302AnimationProgress';
+function markLessonComplete(){try{const file=location.pathname.split('/').pop()||document.title;const data=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}');data[file]={completed:true,completedAt:new Date().toISOString(),title:document.title};localStorage.setItem(PROGRESS_KEY,JSON.stringify(data));}catch(err){}}
+function predictGate(key,correct,fb,hint){window.__predictTries=window.__predictTries||{};if(correct){window.__predictTries[key]=0;return true;}const tries=(window.__predictTries[key]||0)+1;window.__predictTries[key]=tries;if(tries===1){fb.textContent=hint||'Hint: use the highlighted numbers, then try once more.';fb.style.color='#b45309';return false;}return true;}
+function resetPredictGates(){window.__predictTries={};}
+const $=id=>document.getElementById(id);
+let step=-1,predicted=false;
+function nextStep(){if(step>=3)return;step++;$('s'+step).classList.add('on');$('status').innerHTML=["Variable overhead spending variance: $420 U.","Variable overhead efficiency variance: $400 U.","Fixed overhead budget variance: $800 U.","Fixed overhead volume variance: $0 in this simplified case."][step];$('status').style.color=step===3?'#059669':'';$('nextBtn').textContent=step>=3?'Complete':'Next step';$('nextBtn').disabled=step>=3;}
+function predict(ans){if(predicted)return;const fb=$('pfb');const ok=ans==='unfav';if(!predictGate('main',ok,fb,'Hint: using more activity hours than allowed usually means more variable overhead should be applied.'))return;predicted=true;if(ok){fb.textContent='Correct. More hours than allowed creates an unfavorable efficiency variance.';fb.style.color='#059669';}else{fb.textContent='It is unfavorable because actual hours exceed standard hours allowed.';fb.style.color='#dc2626';}}
+function resetAll(){resetPredictGates();step=-1;predicted=false;document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('on'));$('pfb').textContent='';$('status').textContent='Click “Next step” to separate the overhead variance signals.';$('status').style.color='';$('nextBtn').textContent='Next step';$('nextBtn').disabled=false;}
+const ohSignals={spending:'Variable OH spending: compare actual rate with standard rate using actual hours. ($4.20 - $4.00) x 2,100 = $420 U.',efficiency:'Variable OH efficiency: compare actual hours with standard hours allowed. (2,100 - 2,000) x $4 = $400 U.',budget:'Fixed OH budget: compare actual fixed overhead with budgeted fixed overhead. $10,800 - $10,000 = $800 U.',volume:'Fixed OH volume: compare denominator activity with standard hours allowed. In this simplified case the variance is $0.'};
+function showOhVariance(key){document.querySelectorAll('[data-oh]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-oh')===key));$('ohOutput').textContent=ohSignals[key];}
+showOhVariance('spending');
+const answers={"q1":"A","q2":"B","q3":"A"};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: VOH spending variance = (actual rate - standard rate) x actual hours = ($4.20 - $4.00) x 2,100 = $420 unfavorable.",
+    "err": "Not quite. Solution: spending variance compares the rate paid with the standard rate using actual hours. ($4.20 - $4.00) x 2,100 = $420 U."
+  },
+  "q2": {
+    "ok": "Correct. Solution: variable overhead efficiency variance focuses on activity usage. It asks whether actual hours were more or less than the standard hours allowed for the output.",
+    "err": "Not quite. Solution: spending variance focuses on the overhead rate; efficiency variance focuses on hours. If the issue is using more activity hours than allowed, think variable overhead efficiency."
+  },
+  "q3": {
+    "ok": "Correct. Solution: fixed overhead budget variance compares actual fixed overhead with budgeted fixed overhead. If actual fixed overhead is higher than the budget, the variance is unfavorable.",
+    "err": "Not quite. Solution: fixed overhead budget variance is about spending compared with the fixed overhead budget. Higher actual fixed overhead is unfavorable; lower actual fixed overhead is favorable."
+  }
+};
+function switchTab(t){const isAnim=t==='anim';$('tab-anim').classList.toggle('active',isAnim);$('tab-practice').classList.toggle('active',!isAnim);$('tab-anim').setAttribute('aria-selected',isAnim?'true':'false');$('tab-practice').setAttribute('aria-selected',isAnim?'false':'true');$('pane-anim').style.display=isAnim?'':'none';$('pane-practice').style.display=isAnim?'none':'';$('pane-anim').setAttribute('aria-hidden',isAnim?'false':'true');$('pane-practice').setAttribute('aria-hidden',isAnim?'true':'false');}
+function checkPractice(){let score=0;['q1','q2','q3'].forEach(q=>{const card=$(q),sel=card.querySelector('input[name="'+q+'"]:checked'),fb=$('fb'+q.slice(1));card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked'));card.querySelectorAll('input').forEach(r=>r.disabled=true);if(!sel){fb.textContent='Pick an answer.';fb.className='q-fb err';return;}const val=sel.value,cor=answers[q];card.querySelectorAll('.opt').forEach(o=>{const v=o.querySelector('input').value;if(v===cor)o.classList.add('correct');else if(v===val)o.classList.add('wrong');});if(val===cor){score++;fb.textContent=fbk[q].ok;fb.className='q-fb ok';}else{fb.textContent=fbk[q].err;fb.className='q-fb err';}});if(score===3)markLessonComplete();const sb=$('score');sb.style.display='block';sb.textContent=score===3?'Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.';sb.style.color=score===3?'#059669':'#b45309';$('retry').style.display=score<3?'':'none';}
+function retryPractice(){['q1','q2','q3'].forEach(q=>{const card=$(q);card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong'));card.querySelectorAll('input').forEach(r=>{r.checked=false;r.disabled=false;});$('fb'+q.slice(1)).textContent='';});$('score').style.display='none';$('retry').style.display='none';}
+</script>
+</body>
+</html>

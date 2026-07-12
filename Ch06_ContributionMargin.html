@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Every Sale Chips In — Contribution Margin &amp; Margin of Safety</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#d97706; --accent2:#fbbf24; --fixc:#dc2626; --profc:#16a34a; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:700px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .dial{ text-align:center; margin-bottom:.8rem; }
+  .dial label{ font-size:.8rem; font-weight:800; color:var(--muted); }
+  .vol{ font-size:1.7rem; font-weight:900; color:var(--accent); }
+  input[type=range]{ width:min(560px,90%); accent-color:var(--accent); height:8px; }
+
+  .buckets{ display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; align-items:end; max-width:520px; margin:0 auto; }
+  .bwrap{ text-align:center; }
+  .bucket{ height:200px; border:3px solid #cbd5e1; border-top:none; border-radius:0 0 16px 16px; position:relative; overflow:hidden; background:linear-gradient(180deg,#fbfdff,#eef3f7); }
+  .bfill{ position:absolute; left:0; right:0; bottom:0; height:0%; transition:height .4s ease; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:.85rem; padding-top:0; z-index:1; }
+  .bfill.fixed{ background:linear-gradient(180deg,#f87171,#dc2626);} .bfill.profit{ background:linear-gradient(180deg,#4ade80,#16a34a);}
+  .bcap{ position:absolute; top:8px; left:50%; transform:translateX(-50%); min-width:112px; padding:.18rem .55rem .22rem; border:1px solid rgba(203,213,225,.8); border-radius:10px; background:rgba(255,255,255,.86); text-align:center; font-size:.72rem; font-weight:900; line-height:1.15; color:#46556a; z-index:3; }
+  .bcap small{ display:block; font-weight:600; font-size:.6rem; color:#8595a6; }
+  .blabel{ font-size:.78rem; font-weight:800; margin-top:.4rem; }
+  .blabel.f{ color:var(--fixc);} .blabel.p{ color:var(--profc);}
+  .fullband{ position:absolute; left:0; right:0; bottom:100%; height:2px; background:#b45309; display:none; }
+
+  .readouts{ display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; margin-top:1rem; }
+  .ro{ border:2px solid var(--line); border-radius:10px; padding:.55rem .3rem; text-align:center; background:#f9fbfd; }
+  .ro .rl{ font-size:.58rem; font-weight:900; text-transform:uppercase; color:var(--muted); } .ro .rv{ font-size:1rem; font-weight:900; }
+  .ro.cm .rv{color:var(--accent);} .ro.fx .rv{color:var(--fixc);} .ro.pf .rv{color:var(--profc);} .ro.ms .rv{color:#2563eb;}
+
+  .targetbox{ margin-top:1rem; background:#fff7ed; border:1px dashed #fdba74; border-radius:10px; padding:.7rem; text-align:center; font-weight:800; font-size:.92rem; color:#9a3412; }
+  .targetbox .big{ color:var(--accent); font-size:1.1rem; }
+
+  .predict{ border:2px dashed var(--accent); background:#fffbeb; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:#b45309; border-radius:8px; font-weight:800; font-size:.85rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#fef3c7; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .readouts{ grid-template-columns:repeat(2,1fr);} }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+  .case-box{background:#f8fafc;border:1px solid var(--line);border-left:5px solid #2563eb;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:grid;gap:.75rem}
+  .case-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#2563eb}
+  .case-box p,.case-box li{font-size:.88rem;color:#334155;line-height:1.45}
+  .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+  .case-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.7rem}
+  .case-card strong{display:block;color:var(--ink);font-size:.82rem;margin-bottom:.2rem}
+  .case-source{font-size:.76rem;color:var(--muted);font-weight:800;line-height:1.45}
+  .case-source a{color:#2563eb;text-decoration:none}
+  .case-source a:hover{text-decoration:underline}
+  @media(max-width:760px){.case-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 6 · Contribution Margin</div>
+  <h1>Every Sale Chips In 🪙</h1>
+  <p class="subtitle">Each $5 latte sends $3 of contribution margin into the fixed-cost bucket. Once that bucket is full, every extra latte's $3 becomes pure profit. Slide and watch it fill.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🪙 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Contribution margin</span><span class="fact-val">$3 per latte</span></div>
+    <div class="fact"><span class="fact-label">Fixed costs</span><span class="fact-val">$3,000</span></div>
+    <div class="fact"><span class="fact-label">Break-even</span><span class="fact-val">1,000 lattes</span></div>
+    <div class="fact"><span class="fact-label">Target profit</span><span class="fact-val">$1,500 profit needs 1,500 lattes</span></div>
+  </div>
+<div class="dial">
+    <label for="vol">Lattes sold ($3 contribution margin each · fixed costs $3,000)</label><br>
+    <span class="vol" id="volLabel">700</span><br>
+    <input type="range" id="vol" min="0" max="1800" step="50" value="700" oninput="update()" aria-label="Lattes sold">
+  </div>
+
+  <div class="buckets">
+    <div class="bwrap">
+      <div class="bucket">
+        <div class="bcap">FIXED COSTS<small>$3,000 to fill</small></div>
+        <div class="bfill fixed" id="fillFixed"></div>
+      </div>
+      <div class="blabel f" id="lblFixed">$2,100 of $3,000 covered</div>
+    </div>
+    <div class="bwrap">
+      <div class="bucket">
+        <div class="bcap">PROFIT<small>overflow after break-even</small></div>
+        <div class="bfill profit" id="fillProfit"></div>
+      </div>
+      <div class="blabel p" id="lblProfit">$0 profit</div>
+    </div>
+  </div>
+
+  <div class="readouts">
+    <div class="ro cm"><div class="rl">Total CM</div><div class="rv" id="ro-cm">$2,100</div></div>
+    <div class="ro fx"><div class="rl">Fixed covered</div><div class="rv" id="ro-fx">$2,100</div></div>
+    <div class="ro pf"><div class="rl">Profit</div><div class="rv" id="ro-pf">$0</div></div>
+    <div class="ro ms"><div class="rl">Margin of safety</div><div class="rv" id="ro-ms">0 units</div></div>
+  </div>
+
+  <div class="targetbox">
+    🎯 Want <strong>$1,500</strong> profit? Units = (Fixed + Target) ÷ CM = ($3,000 + $1,500) ÷ $3 = <span class="big">1,500 lattes</span>
+  </div>
+
+  <div class="predict">
+    <div class="pq">🔮 Predict: the fixed-cost bucket is full at 1,000 lattes. The 1,001st latte's $3 of contribution margin goes to…</div>
+    <div>
+      <button class="pbtn" onclick="predict('profit')">Profit</button>
+      <button class="pbtn" onclick="predict('fixed')">More fixed costs</button>
+      <button class="pbtn" onclick="predict('variable')">Variable costs</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Contribution margin covers fixed costs first. Only sales <em>beyond</em> break-even create profit.</p>
+  </div>
+  <div class="case-box" aria-label="Real-world case">
+    <h3>Real-World Case: Movie-Theater Popcorn</h3>
+    <p>Theaters hand up to ~90% of opening-week ticket money to the studios, so tickets barely cover costs. Concessions are the opposite: a bag of popcorn costs the theater about $0.90 and sells for around $8 &mdash; roughly an 85% margin &mdash; and concessions deliver about 40% of profits from only ~20% of revenue.</p>
+    <div class="case-grid">
+      <div class="case-card"><strong>Thin-margin product</strong><p>Most ticket revenue goes to the studio, so each ticket's contribution margin is small.</p></div>
+      <div class="case-card"><strong>High-margin product</strong><p>Popcorn and soda keep almost all of their price as contribution margin.</p></div>
+      <div class="case-card"><strong>The strategy</strong><p>Tickets are a loss leader to fill seats; concessions carry the contribution that covers fixed costs.</p></div>
+    </div>
+    <p><strong>Contribution-margin question:</strong> which product really carries the contribution margin &mdash; and why is the popcorn so expensive?</p>
+    <p class="case-source">Source for discussion: <a href="https://www.gsb.stanford.edu/insights/why-does-movie-popcorn-cost-so-much" target="_blank" rel="noopener">Stanford GSB, "Why Does Movie Popcorn Cost So Much?"</a>. Used as a class discussion prompt; figures are approximate.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Contribution margin is used first to:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Pay variable costs</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Cover fixed costs, then create profit</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Pay income taxes</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Buy inventory</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Fixed $3,000, CM $3/unit. Units for a $1,500 target profit:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) 500</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) 1,000</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) 1,500</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) 4,500</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">What does margin of safety tell managers?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) The amount of fixed cost in each unit</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) How far sales can fall before reaching break-even</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) The selling price minus variable cost</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) The target profit before fixed costs</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Contribution margin is the engine behind break-even, target profit, and margin of safety.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>CM per unit:</strong> Selling price minus variable cost per unit.</li><li><strong>CM ratio:</strong> Contribution margin divided by sales.</li><li><strong>Target profit:</strong> Profit goal included in the CVP formula.</li><li><strong>Margin of safety:</strong> Actual sales above break-even sales.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Contribution margin shows how much each sale helps cover fixed costs and profit.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Target-profit units = (fixed costs + target profit) / CM per unit. Margin of safety = actual sales - break-even sales.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Explain</strong> how contribution margin first covers fixed costs, then becomes profit.</li>
+    <li><strong>Calculate</strong> units needed for a target profit.</li>
+    <li><strong>Compute</strong> the margin of safety.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 6 · Contribution margin &amp; margin of safety</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const CM=3, FIX=3000, BE=1000, MAXU=1800;
+const MAXPROFIT=CM*MAXU-FIX; // 2400
+function fmt(n){ return '$'+Math.round(n).toLocaleString(); }
+function update(){
+  const u=+$('vol').value; $('volLabel').textContent=u;
+  const totalCM=CM*u;
+  const fixedCovered=Math.min(totalCM, FIX);
+  const profit=Math.max(0, totalCM-FIX);
+  const mos=Math.max(0, u-BE);
+  $('fillFixed').style.height=(fixedCovered/FIX*100)+'%';
+  $('fillFixed').textContent = fixedCovered>=FIX ? 'FULL' : '';
+  $('fillProfit').style.height=(MAXPROFIT>0?profit/MAXPROFIT*100:0)+'%';
+  $('lblFixed').textContent = fmt(fixedCovered)+' of $3,000 covered';
+  $('lblProfit').textContent = fmt(profit)+' profit';
+  $('ro-cm').textContent=fmt(totalCM); $('ro-fx').textContent=fmt(fixedCovered);
+  $('ro-pf').textContent=fmt(profit); $('ro-ms').textContent= mos.toLocaleString()+' units';
+}
+let predicted=false;
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='profit', fb)) return; predicted=true; if(ans==='profit'){ fb.textContent='✅ Correct! Once fixed costs are fully covered, every additional unit\'s $3 contribution margin is profit. Slide past 1,000 to watch the green tank fill.'; fb.style.color='#059669'; $('vol').value=1200; update(); }
+  else { fb.textContent='❌ It becomes profit. After break-even (1,000), fixed costs are covered, so each new latte\'s $3 CM drops straight to profit.'; fb.style.color='#dc2626'; $('vol').value=1200; update(); }
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'C',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: contribution margin is used first to cover fixed costs. Once fixed costs are covered, remaining contribution margin becomes operating income.",
+    "err": "Not quite. Solution: contribution margin is sales minus variable costs. It first pays fixed costs, then any leftover amount is profit."
+  },
+  "q2": {
+    "ok": "Correct. Solution: required units = (fixed costs + target profit) / CM per unit = ($3,000 + $1,500) / $3 = 1,500 units.",
+    "err": "Not quite. Solution: for a target profit, include both fixed costs and desired profit in the numerator: ($3,000 + $1,500) / $3 = 1,500 units."
+  },
+  "q3": {
+    "ok": "Correct. Solution: margin of safety measures the cushion above break-even. It tells managers how much sales can drop before profit falls to zero.",
+    "err": "Not quite. Solution: margin of safety is not contribution margin per unit. It is the distance between actual sales and break-even sales."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; const s=$('vol'); if(e.key==='ArrowRight'){ s.value=Math.min(1800,+s.value+50); update(); } if(e.key==='ArrowLeft'){ s.value=Math.max(0,+s.value-50); update(); } });
+update();
+</script>
+</body>
+</html>

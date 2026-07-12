@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>One Rate for the Whole Factory? Plantwide vs. Departmental Overhead Rates</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#2a7ae0; --accent2:#4fa3f7;
+    --plant:#0ea5e9; --dept:#16a34a; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:720px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .depts{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+  .dept{ border:2px solid var(--line); border-radius:12px; padding:.8rem .9rem; background:#fafbfd; }
+  .dept.mach{ border-color:#bae6fd; } .dept.asm{ border-color:#bbf7d0; }
+  .dept h3{ font-size:.95rem; } .dept .meta{ font-size:.74rem; color:var(--muted); margin:.2rem 0; }
+  .dept .rate{ font-size:1.3rem; font-weight:900; } .dept.mach .rate{ color:#0284c7;} .dept.asm .rate{ color:#16a34a;}
+  .plantwide{ margin-top:.7rem; text-align:center; border:2px dashed var(--accent); border-radius:12px; padding:.7rem; background:#eff6ff; font-weight:800; font-size:.92rem; color:#1d4ed8; }
+  .plantwide .big{ font-size:1.25rem; font-weight:900; }
+
+  .job{ margin-top:.9rem; border:2px solid var(--line); border-radius:12px; overflow:hidden; }
+  .job h3{ font-size:.86rem; background:#f1f5f9; padding:.5rem .8rem; color:#33445a; }
+  table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+  th,td{ padding:.45rem .8rem; text-align:right; } th:first-child,td:first-child{ text-align:left; }
+  thead th{ font-size:.64rem; text-transform:uppercase; color:var(--muted); letter-spacing:.04em; }
+  tbody tr{ border-top:1px solid var(--line); }
+
+  .results{ margin-top:1rem; }
+  .barrow{ display:flex; align-items:center; gap:.7rem; margin:.5rem 0; }
+  .barrow .bl{ width:120px; font-size:.82rem; font-weight:800; }
+  .track{ flex:1; height:30px; background:#eef3f7; border-radius:7px; overflow:hidden; }
+  .barf{ height:100%; width:0; min-width:0; overflow:hidden; border-radius:7px; transition:width 1s cubic-bezier(.34,1.2,.64,1); display:flex; align-items:center; justify-content:flex-end; padding-right:8px; color:#fff; font-size:.8rem; font-weight:900; }
+  .barf.plant{ background:linear-gradient(90deg,#38bdf8,#0284c7);} .barf.dept{ background:linear-gradient(90deg,#4ade80,#16a34a);}
+  .barf.empty{ display:none; width:0 !important; min-width:0 !important; flex-basis:0 !important; padding-right:0; background:transparent; transition:none; }
+
+  /* Overhead pool that SPLITS into two department buckets */
+  .poolzone{ margin:.2rem 0 1rem; }
+  .pool-cap{ text-align:center; font-size:.74rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:.4rem; }
+  .poolbar{ position:relative; display:flex; gap:0; height:66px; transition:gap .6s ease; }
+  .poolbar.split{ gap:16px; }
+  .pseg{ display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:900; border-radius:4px; background:#94a3b8; transition:background .6s ease, border-radius .6s ease; }
+  .pseg.mach{ flex:480; } .pseg.asm{ flex:120; }
+  .poolbar:not(.split) .pseg.mach{ border-radius:12px 0 0 12px; } .poolbar:not(.split) .pseg.asm{ border-radius:0 12px 12px 0; }
+  .poolbar.split .pseg{ border-radius:12px; }
+  .poolbar.split .pseg.mach{ background:linear-gradient(180deg,#38bdf8,#0284c7); }
+  .poolbar.split .pseg.asm{ background:linear-gradient(180deg,#4ade80,#16a34a); }
+  .pseg span{ font-size:1.05rem; opacity:0; transform:translateY(4px); transition:opacity .5s ease .15s, transform .5s ease .15s; }
+  .pseg small{ font-weight:700; font-size:.66rem; opacity:0; transition:opacity .5s ease .2s; }
+  .poolbar.split .pseg span, .poolbar.split .pseg small{ opacity:1; transform:none; }
+  .pool-total{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:1.35rem; font-weight:900; color:#fff; pointer-events:none; transition:opacity .35s ease; }
+  .poolbar.split .pool-total{ opacity:0; }
+
+  /* rate cards */
+  .ratecard{ border:2px solid var(--line); border-radius:12px; padding:.6rem .8rem; margin-bottom:.55rem; opacity:.3; transition:opacity .45s; }
+  .ratecard.on{ opacity:1; }
+  .ratecard.plantwide-card.on{ border-color:#bae6fd; background:#f0f9ff; }
+  .ratecard.dept-card.on{ border-color:#bbf7d0; background:#f0fdf4; }
+  .rc-h{ font-size:.76rem; font-weight:800; color:#334155; margin-bottom:.35rem; }
+  .rc-calc{ display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; font-weight:800; font-size:.86rem; margin:.25rem 0; }
+  .pill{ padding:.2rem .5rem; border-radius:999px; font-size:.8rem; font-weight:800; white-space:nowrap; }
+  .pill.money{ background:#e2e8f0; color:#334155; } .pill.money.mach{ background:#dbeafe; color:#1e40af; } .pill.money.asm{ background:#dcfce7; color:#166534; }
+  .pill.base.labor{ background:#fef3c7; color:#92400e; } .pill.base.mach{ background:#dbeafe; color:#1e40af; }
+  .rc-rate{ background:#1d4ed8; color:#fff; padding:.2rem .55rem; border-radius:8px; } .rc-rate.mach{ background:#0284c7; } .rc-rate.asm{ background:#16a34a; }
+
+  /* Job 100 "lens": what each method counts vs ignores */
+  .lens{ border:2px solid var(--line); border-radius:12px; padding:.8rem; margin:.2rem 0 1rem; background:#fbfdff; }
+  .lens-cap{ text-align:center; font-size:.84rem; font-weight:800; color:#334155; margin-bottom:.5rem; }
+  .usage{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+  .udept{ border:1px dashed var(--line); border-radius:10px; padding:.5rem; }
+  .ud-h{ font-size:.72rem; font-weight:800; color:var(--muted); margin-bottom:.3rem; text-align:center; }
+  .token{ display:flex; align-items:center; justify-content:center; gap:.35rem; font-weight:800; font-size:.84rem; padding:.45rem; border-radius:8px; margin:.25rem 0; border:2px solid var(--line); background:#fff; transition:all .4s; flex-wrap:wrap; }
+  .token.counted{ border-color:#16a34a; background:#ecfdf5; color:#166534; box-shadow:0 0 0 3px rgba(22,163,74,.12); }
+  .token.counted-mach{ border-color:#0284c7; background:#eff6ff; color:#1e40af; box-shadow:0 0 0 3px rgba(2,132,199,.12); }
+  .token.ignored{ opacity:.45; filter:grayscale(.7); }
+  .token .tag{ font-size:.6rem; font-weight:800; background:#fee2e2; color:#b91c1c; padding:.05rem .35rem; border-radius:5px; }
+  .token .tag.base{ background:#dbeafe; color:#1e40af; }
+  .token .tag.labor{ background:#fef3c7; color:#92400e; }
+  .token .tag.note{ background:#e2e8f0; color:#334155; }
+  .lens-calc{ text-align:center; font-weight:900; font-size:1.02rem; margin-top:.6rem; min-height:1.4rem; }
+  @media(max-width:560px){ .usage{ grid-template-columns:1fr; } }
+
+  /* Job selector — compact but clearly visible card */
+  .jobswitch{ border:1px solid var(--accent2); border-radius:9px; background:linear-gradient(180deg,#eef6ff,#f7fbff); padding:.46rem .55rem; margin:.25rem 0 .75rem; box-shadow:0 2px 7px rgba(42,122,224,.11); }
+  .jobswitch-h{ text-align:center; font-size:.72rem; font-weight:900; color:var(--accent); margin-bottom:.34rem; }
+  .js-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.38rem; }
+  .js-btn{ display:flex; flex-direction:column; align-items:center; gap:.05rem; padding:.36rem .46rem; border:1px solid var(--line); background:#fff; border-radius:8px; font-weight:900; cursor:pointer; transition:all .2s; text-align:center; color:var(--ink); }
+  .js-btn .js-title{ font-size:.82rem; }
+  .js-btn .js-sub{ font-size:.6rem; font-weight:700; color:var(--muted); line-height:1.1; }
+  .js-btn:hover:not(:disabled):not(.active){ border-color:var(--accent2); transform:translateY(-1px); }
+  .js-btn.active{ background:linear-gradient(135deg,var(--accent),var(--accent2)); border-color:var(--accent); color:#fff; box-shadow:0 2px 7px rgba(42,122,224,.24); }
+  .js-btn.active .js-sub{ color:rgba(255,255,255,.92); }
+  .js-btn:disabled{ opacity:.75; cursor:not-allowed; background:#f1f5f9; border-style:dashed; }
+  .js-btn.pulse{ animation:jsPulse 1.1s ease 4; border-color:var(--accent); }
+  @keyframes jsPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(42,122,224,.45);} 50%{ box-shadow:0 0 0 5px rgba(42,122,224,0);} }
+  .js-btn:not(:disabled) .lock{ display:none; }
+  .js-btn:not(:disabled) .locked-hint{ display:none; }
+  .js-btn:disabled .ready-hint{ display:none; }
+  .js-now{ display:none; font-size:.51rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; margin-top:.06rem; background:rgba(255,255,255,.28); padding:.04rem .32rem; border-radius:999px; }
+  .js-btn.active .js-now{ display:inline-block; }
+  .contrast{ display:none; margin-top:.7rem; text-align:center; font-weight:700; font-size:.92rem; color:#1e40af; background:#eff6ff; border:2px solid #bfdbfe; border-radius:10px; padding:.75rem; }
+  .contrast.show{ display:block; animation:pop .4s ease; }
+
+  /* Where the bases come from: the factory's actual hours */
+  .resources{ border:2px solid var(--line); border-radius:12px; padding:.8rem; margin-bottom:1rem; background:#fbfdff; }
+  .res-cap{ text-align:center; font-size:.8rem; font-weight:800; color:#334155; margin-bottom:.55rem; }
+  .res-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+  .resdept{ border:1px solid var(--line); border-radius:10px; padding:.6rem; }
+  .resdept.mach{ border-color:#bae6fd; background:#f0f9ff; } .resdept.asm{ border-color:#bbf7d0; background:#f0fdf4; }
+  .rd-h{ font-weight:800; font-size:.86rem; margin-bottom:.35rem; } .rd-h span{ font-weight:600; font-size:.68rem; color:var(--muted); }
+  .rd-line{ display:flex; align-items:center; gap:.4rem; font-size:.84rem; font-weight:700; margin:.2rem 0; }
+  .rd-line .ic{ font-size:.95rem; } .rd-line .dim{ opacity:.35; }
+  .res-totals{ margin-top:.6rem; display:grid; gap:.35rem; }
+  .rt{ text-align:center; font-size:.84rem; font-weight:700; padding:.4rem .5rem; border-radius:8px; }
+  .rt.labor{ background:#fef3c7; color:#92400e; } .rt.mach{ background:#dbeafe; color:#1e40af; }
+  .rt strong{ font-size:1.02rem; } .rt small{ font-weight:700; opacity:.8; }
+  @media(max-width:560px){ .res-grid{ grid-template-columns:1fr; } }
+  .gap{ text-align:center; font-weight:900; font-size:1.02rem; color:#b91c1c; padding:.6rem; border-radius:10px; background:#fef2f2; border:2px solid #fca5a5; display:none; margin-top:.5rem; }
+  .gap.show{ display:block; animation:pop .4s ease; } @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .predict{ border:2px dashed var(--accent); background:#eff6ff; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; display:none; }
+  .predict.show{ display:block; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.84rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#dbeafe; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .status{ min-height:26px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.55rem 1.1rem; border:none; border-radius:9px; font-weight:800; font-size:.82rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:640px){ .depts{ grid-template-columns:1fr; } }
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 2 · Plantwide vs. Departmental Rates</div>
+  <h1>One Rate for the Whole Factory? 🏭</h1>
+  <p class="subtitle">This factory has a robot-heavy Machining department and a hands-on Assembly department. Watch how a single plantwide overhead rate badly mis-costs a job that lives mostly in the expensive department.</p>
+</header>
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🏭 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false" aria-label="Plantwide vs departmental animation">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Factory overhead</span><span class="fact-val">$600,000 total</span></div>
+    <div class="fact"><span class="fact-label">Plantwide base</span><span class="fact-val">30,000 labor hrs</span></div>
+    <div class="fact"><span class="fact-label">Machining base</span><span class="fact-val">24,000 machine hrs</span></div>
+    <div class="fact"><span class="fact-label">Job 100</span><span class="fact-val">80 machine hrs + 10 labor hrs</span></div>
+  </div>
+<!-- 0) Where the "bases" come from — the factory's actual hours this year --><div class="status" id="status" role="status" aria-live="polite">Start by applying the single plantwide rate.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="b0" onclick="goPlant()">1 · Apply Plantwide Rate</button>
+    <button class="btn btn-accent" id="b1" onclick="goDept()" disabled>2 · Apply Departmental Rates</button>
+    <button class="btn btn-accent" id="b2" onclick="goCompare()" disabled>3 · Compare</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+<div class="resources">
+    <div class="res-cap">First, the factory's hours this year — these are the “bases” you divide overhead by 👇</div>
+    <div class="res-grid">
+      <div class="resdept mach">
+        <div class="rd-h">🤖 Machining <span>· automated</span></div>
+        <div class="rd-line"><span class="ic">⚙️</span> 24,000 machine hours</div>
+        <div class="rd-line"><span class="ic">🕒</span> 6,000 labor hours</div>
+      </div>
+      <div class="resdept asm">
+        <div class="rd-h">🔧 Assembly <span>· hands-on</span></div>
+        <div class="rd-line"><span class="ic dim">⚙️</span> 0 machine hours</div>
+        <div class="rd-line"><span class="ic">🕒</span> 24,000 labor hours</div>
+      </div>
+    </div>
+    <div class="res-totals">
+      <div class="rt labor">🕒 Total labor hours = 6,000 + 24,000 = <strong>30,000</strong> <small>← the one plantwide base</small></div>
+      <div class="rt mach">⚙️ Machine hours = <strong>24,000</strong> <small>← all in Machining (its departmental base)</small></div>
+    </div>
+  </div>
+
+  <!-- 1) The overhead pool — one block that SPLITS into two department buckets -->
+  <div class="poolzone">
+    <div class="pool-cap">Factory overhead to spread (watch it split in step 2)</div>
+    <div class="poolbar" id="poolbar">
+      <div class="pseg mach"><span>$480,000</span><small>🤖 Machining</small></div>
+      <div class="pseg asm"><span>$120,000</span><small>🔧 Assembly</small></div>
+      <div class="pool-total">$600,000 total</div>
+    </div>
+  </div>
+
+  <!-- 2) Rate cards — plantwide uses ONE base (labor hrs); each dept uses its OWN base -->
+  <div class="ratecard plantwide-card" id="rate-plant">
+    <div class="rc-h">🏭 Plantwide — one rate, one base</div>
+    <div class="rc-calc"><span class="pill money">$600,000</span><span>÷</span><span class="pill base labor">30,000 🕒 labor hrs (6,000 + 24,000)</span><span>=</span><span class="rc-rate">$20 / 🕒</span></div>
+  </div>
+  <div class="ratecard dept-card" id="rate-dept">
+    <div class="rc-h">🏢 Departmental — each department, its own base</div>
+    <div class="rc-calc"><span class="pill money mach">$480,000</span><span>÷</span><span class="pill base mach">24,000 ⚙️ machine hrs</span><span>=</span><span class="rc-rate mach">$20 / ⚙️</span></div>
+    <div class="rc-calc"><span class="pill money asm">$120,000</span><span>÷</span><span class="pill base labor">24,000 🕒 labor hrs</span><span>=</span><span class="rc-rate asm">$5 / 🕒</span></div>
+  </div>
+
+  <!-- Job selector: Job 100 (simple) → Job 200 (trickier; unlocks after Job 100) -->
+  <div class="jobswitch">
+    <div class="jobswitch-h">👇 Pick a job to cost — start with Job 100, then unlock Job 200</div>
+    <div class="js-grid">
+      <button class="js-btn active" id="js-j100" onclick="loadJob('j100')">
+        <span class="js-title">🤖 Job 100</span>
+        <span class="js-sub">Fully automated</span>
+        <span class="js-now">✓ solving now</span>
+      </button>
+      <button class="js-btn" id="js-j200" onclick="loadJob('j200')" disabled>
+        <span class="js-title"><span class="lock">🔒 </span>Job 200</span>
+        <span class="js-sub locked-hint">Locked: finish Job 100</span>
+        <span class="js-sub ready-hint">▶ +5 labor hrs from hand-finishing</span>
+        <span class="js-now">✓ solving now</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 3) The lens — what each method actually counts on the current job -->
+  <div class="lens">
+    <div class="lens-cap" id="lens-cap">📋 Job 100 — a fully-automated bracket</div>
+    <div class="usage">
+      <div class="udept">
+        <div class="ud-h">🤖 Machining</div>
+        <div class="token" id="tk-mh">⚙️ 80 machine hrs</div>
+        <div class="token" id="tk-mlh" style="display:none">🕒 5 labor hrs</div>
+      </div>
+      <div class="udept">
+        <div class="ud-h">🔧 Assembly</div>
+        <div class="token" id="tk-alh">🕒 10 labor hrs</div>
+      </div>
+    </div>
+    <div class="lens-calc" id="lens-calc"></div>
+  </div>
+
+  <div class="results">
+    <div class="barrow"><div class="bl" style="color:#0284c7">Plantwide</div><div class="track"><div class="barf plant empty" id="barPlant"></div></div></div>
+    <div class="barrow"><div class="bl" style="color:#16a34a">Departmental</div><div class="track"><div class="barf dept empty" id="barDept"></div></div></div>
+    <div class="gap" id="gap">Plantwide costing missed $1,450 of overhead on this one job!</div>
+  </div>
+
+  <div class="contrast" id="contrast"></div>
+
+  <div class="predict" id="predict">
+    <div class="pq">🔮 Predict: Job 100 runs <strong>80 machine hours</strong> in the pricey automated Machining dept but logs only <strong>10 labor hours</strong> (all in Assembly). Using the plantwide <em>labor-hour</em> rate, this job will be…</div>
+    <div>
+      <button class="pbtn" onclick="predict('under')">Under-costed</button>
+      <button class="pbtn" onclick="predict('over')">Over-costed</button>
+      <button class="pbtn" onclick="predict('same')">Costed correctly</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div><div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>A plantwide rate works best when departments use overhead in step with the <em>same</em> base. Here they do not: Machining uses <strong>machine hours</strong>, while Assembly uses <strong>labor hours</strong>. Departmental rates match each department to the right base.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none" aria-label="Practice">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Why can Job 100 look too cheap under the plantwide rate?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) The plantwide rate uses labor hours and misses the machine-heavy work</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) The plantwide rate counts machine hours twice</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Departmental rates change total factory overhead</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Assembly has no overhead cost</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Using departmental rates — Machining $20 × 80 machine hrs, Assembly $5 × 10 labor hrs — total overhead applied is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) $200</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) $1,650</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) $850</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) $1,600</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">Job 200 adds 5 extra labor hours in Machining. Why are those hours <strong>not</strong> used in the departmental overhead calculation?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Machining has no overhead to assign</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Machining's departmental rate uses machine hours, not labor hours</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Labor hours are never used in any department</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Extra labor hours are ignored in every costing system</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>One factory-wide rate can hide which department actually drives overhead.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Plantwide rate:</strong> One overhead rate for the whole factory.</li><li><strong>Departmental rate:</strong> A separate overhead rate for each department.</li><li><strong>Activity base:</strong> The driver used to assign overhead.</li><li><strong>Cost distortion:</strong> When a product gets too much or too little overhead.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>More detailed rates help when products use departments differently.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Plantwide: $20 × 10 labor hours = $200. Departmental: ($20 × 80 machine hours) + ($5 × 10 labor hours) = $1,600 + $50 = $1,650. The plantwide rate counts only labor hours, so it under-charges this machining-heavy job by $1,450.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Compute</strong> a plantwide overhead rate and separate departmental rates.</li>
+    <li><strong>Match</strong> each overhead rate to its activity base (machine hours vs. labor hours).</li>
+    <li><strong>Explain</strong> why a single plantwide rate under-costs a job that is heavy in a high-overhead department.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 2 · Plantwide vs. departmental overhead rates</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try { const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data)); } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1; window.__predictTries[key] = tries;
+  if (tries === 1) { fb.textContent = hint || 'Hint: which base does the plantwide rate use, and which department did this job rely on?'; fb.style.color = '#b45309'; return false; }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const MAX=1800;
+let step=0, predicted=false;
+const jobs={
+  j100:{ label:'Job 100 — a fully-automated bracket', mh:80, mLab:0, aLab:10, plant:200, dept:1650 },
+  j200:{ label:'Job 200 — same bracket, plus 5 Machining labor hrs from hand-finishing', mh:80, mLab:5, aLab:10, plant:300, dept:1650 }
+};
+let currentJob='j100';
+function pct(v){ return Math.min(100, v/MAX*100); }
+
+// Show what one method "sees" for the current job: highlight what it counts, grey what it ignores
+function setLens(mode){
+  const j=jobs[currentJob];
+  const mh=$('tk-mh'), mlh=$('tk-mlh'), alh=$('tk-alh'), cap=$('lens-cap'), calc=$('lens-calc');
+  $('tk-mlh').style.display = j.mLab>0 ? '' : 'none';
+  [mh,mlh,alh].forEach(t=>t.className='token');
+  if(mode==='plant'){
+    cap.innerHTML='🏭 Plantwide lens — it can only see 🕒 labor hours';
+    mh.classList.add('ignored');  mh.innerHTML='⚙️ '+j.mh+' machine hrs <span class="tag">ignored</span>';
+    if(j.mLab>0){ mlh.classList.add('counted'); mlh.innerHTML='🕒 '+j.mLab+' labor hrs ✓'; }
+    alh.classList.add('counted'); alh.innerHTML='🕒 '+j.aLab+' labor hrs ✓';
+    const lbl = j.mLab>0 ? '('+j.mLab+' + '+j.aLab+')' : ''+j.aLab;
+    calc.innerHTML=lbl+' 🕒 × $20 = <span style="color:#0284c7">$'+j.plant.toLocaleString()+'</span>';
+  } else {
+    cap.innerHTML='🏢 Departmental lens — each dept counts its own base';
+    mh.classList.add('counted-mach'); mh.innerHTML='⚙️ '+j.mh+' machine hrs ✓';
+    if(j.mLab>0){ mlh.classList.add('ignored'); mlh.innerHTML='🕒 '+j.mLab+' labor hrs <span class="tag">not Machining\'s base</span>'; }
+    alh.classList.add('counted'); alh.innerHTML='🕒 '+j.aLab+' labor hrs ✓';
+    calc.innerHTML='('+j.mh+' ⚙️ × $20) + ('+j.aLab+' 🕒 × $5) = $'+(j.mh*20).toLocaleString()+' + $'+(j.aLab*5)+' = <span style="color:#16a34a">$'+j.dept.toLocaleString()+'</span>';
+  }
+}
+function goPlant(){
+  if(step>0) return; step=1;
+  const j=jobs[currentJob];
+  $('rate-plant').classList.add('on');
+  setLens('plant');
+  const plantBar=$('barPlant');
+  plantBar.classList.remove('empty'); plantBar.style.width='0'; void plantBar.offsetWidth;
+  plantBar.style.width=pct(j.plant)+'%'; plantBar.textContent='$'+j.plant.toLocaleString();
+  $('status').innerHTML='Plantwide sees only labor hours, so the blue bar is short: <strong>$'+j.plant.toLocaleString()+'</strong>.';
+  $('b0').disabled=true; $('b1').disabled=false;
+  if(currentJob==='j100') $('predict').classList.add('show');
+}
+function goDept(){
+  if(step!==1) return; step=2;
+  const j=jobs[currentJob];
+  $('poolbar').classList.add('split');   // $600,000 → $480,000 + $120,000
+  $('rate-dept').classList.add('on');
+  setLens('dept');
+  const deptBar=$('barDept');
+  deptBar.classList.remove('empty'); deptBar.style.width='0'; void deptBar.offsetWidth;
+  deptBar.style.width=pct(j.dept)+'%'; deptBar.textContent='$'+j.dept.toLocaleString();
+  $('status').innerHTML='The green departmental bar is longer because it charges the <strong>'+j.mh+' machine hours</strong> properly → <strong>$'+j.dept.toLocaleString()+'</strong>.';
+  $('b1').disabled=true; $('b2').disabled=false;
+}
+function goCompare(){
+  if(step!==2) return; step=3;
+  const j=jobs[currentJob];
+  $('gap').classList.add('show');
+  $('gap').textContent='Plantwide costing missed $'+(j.dept-j.plant).toLocaleString()+' of overhead on this job!';
+  if(currentJob==='j100'){
+    $('status').innerHTML='🎉 Plantwide $200 vs departmental $1,650. Now unlock <strong>Job 200</strong> (a trickier job) above ↑';
+    $('js-j200').disabled=false; $('js-j200').classList.add('pulse');
+  } else {
+    $('status').innerHTML='🎉 Plantwide $300 vs departmental $1,650 — see why below.';
+    $('contrast').classList.add('show');
+    $('contrast').innerHTML='🔑 The 5 extra Machining labor hours pushed <strong>plantwide $200 → $300</strong>, but <strong>departmental stayed $1,650</strong>. Machining charges by <strong>machine hours</strong>, so those labor hours never enter its overhead.';
+  }
+  $('status').style.color='#b91c1c'; $('b2').disabled=true;
+}
+function predict(ans){
+  const fb=$('pfb'); const ok = ans==='under';
+  if(!predictGate('pfb', ok, fb, 'Hint: plantwide counts only 10 labor hours, but the expensive Machining department is driven by 80 machine hours.')) return;
+  if(predicted) return; predicted=true;
+  if(ok){ fb.textContent='✅ Correct! The labor-based plantwide rate ignores the 80 machine hours, so it under-costs this machining-heavy job.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ It will be UNDER-costed — the plantwide rate only sees 10 labor hours and misses the 80 machine hours in the expensive department.'; fb.style.color='#dc2626'; }
+}
+function loadJob(key){
+  if(!jobs[key]) return;
+  if(key==='j200' && $('js-j200').disabled) return;   // still locked until Job 100 is finished
+  currentJob=key;
+  document.querySelectorAll('.js-btn').forEach(b=>b.classList.remove('active'));
+  $('js-'+key).classList.add('active'); $('js-j200').classList.remove('pulse');
+  resetAnim();
+}
+function resetAnim(){
+  resetPredictGates(); step=0; predicted=false;
+  const j=jobs[currentJob];
+  $('barPlant').style.width='0'; $('barPlant').textContent=''; $('barPlant').classList.add('empty');
+  $('barDept').style.width='0'; $('barDept').textContent=''; $('barDept').classList.add('empty');
+  $('gap').classList.remove('show'); $('predict').classList.remove('show'); $('pfb').textContent=''; $('contrast').classList.remove('show');
+  $('poolbar').classList.remove('split'); $('rate-plant').classList.remove('on'); $('rate-dept').classList.remove('on');
+  $('tk-mh').className='token';  $('tk-mh').innerHTML='⚙️ '+j.mh+' machine hrs';
+  $('tk-mlh').className='token'; $('tk-mlh').innerHTML='🕒 '+j.mLab+' labor hrs'; $('tk-mlh').style.display = j.mLab>0 ? '' : 'none';
+  $('tk-alh').className='token'; $('tk-alh').innerHTML='🕒 '+j.aLab+' labor hrs';
+  $('lens-cap').innerHTML='📋 '+j.label; $('lens-calc').innerHTML='';
+  $('b0').disabled=false; $('b1').disabled=true; $('b2').disabled=true;
+  $('status').textContent='Start by applying the single plantwide rate to '+(currentJob==='j100'?'Job 100':'Job 200')+'.'; $('status').style.color='';
+}
+function resetAll(){
+  currentJob='j100';
+  document.querySelectorAll('.js-btn').forEach(b=>b.classList.remove('active','pulse'));
+  $('js-j100').classList.add('active'); $('js-j200').disabled=true;
+  resetAnim();
+}
+function switchTab(t){
+  const isAnim = t==='anim';
+  $('tab-anim').classList.toggle('active', isAnim); $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim?'true':'false'); $('tab-practice').setAttribute('aria-selected', isAnim?'false':'true');
+  $('pane-anim').style.display = isAnim?'':'none'; $('pane-practice').style.display = isAnim?'none':'';
+  $('pane-anim').setAttribute('aria-hidden', isAnim?'false':'true'); $('pane-practice').setAttribute('aria-hidden', isAnim?'true':'false');
+}
+const answers={q1:'A',q2:'B',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: the plantwide rate uses one average labor-hour base. Job 100 is heavy in Machining, which is driven by machine hours, so the plantwide method misses much of the overhead-causing activity.",
+    "err": "Not quite. Solution: plantwide costing is too broad here because it uses labor hours for the whole factory. Job 100 uses a lot of machine hours in Machining, so a labor-only rate can make it look too cheap."
+  },
+  "q2": {
+    "ok": "Correct. Solution: departmental costing matches each department to its own base: Machining uses 80 machine hours x $20 = $1,600, and Assembly uses 10 labor hours x $5 = $50. Total = $1,650.",
+    "err": "Not quite. Solution: do not use one total base. Use each department rate: Machining $20 x 80 machine hours = $1,600; Assembly $5 x 10 labor hours = $50; total = $1,650."
+  },
+  "q3": {
+    "ok": "Correct. Solution: departmental costing uses the base chosen for each department. Machining's overhead base is machine hours, so the 5 added labor hours from hand-finishing do not change Machining overhead. They affect the plantwide labor-hour method, not the Machining departmental charge.",
+    "err": "Not quite. Solution: the 5 extra hours are real labor hours, but they are not the Machining department's overhead base. Machining applies overhead using machine hours, while Assembly uses labor hours."
+  }
+};
+function checkPractice(){
+  let score=0;
+  ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1));
+    card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true);
+    if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; }
+    const val=sel.value, cor=answers[q];
+    card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); });
+    if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } });
+  if(score===3) markLessonComplete();
+  const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309';
+  $('retry').style.display= score<3?'':'none';
+}
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+resetAnim();   // sync initial state to Job 100
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'){ if(step===0)goPlant(); else if(step===1)goDept(); else if(step===2)goCompare(); } });
+</script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>It All Starts With Sales — Building the Master Budget</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#9d174d; --accent2:#f472b6; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1000px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:710px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .flow{ display:grid; gap:.2rem; max-width:560px; margin:0 auto; }
+  .stage{ border:2px solid var(--line); border-radius:12px; padding:.8rem 1rem; background:#fafafa; opacity:.35; transform:translateY(6px); transition:all .45s; }
+  .stage.on{ opacity:1; transform:translateY(0); border-color:var(--accent2); background:#fff; box-shadow:0 4px 14px rgba(157,23,77,.12); }
+  .stage .sh{ display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+  .stage .st{ font-weight:800; font-size:.92rem; } .stage .sd{ font-size:.72rem; color:var(--muted); }
+  .stage .sv{ font-weight:900; font-size:1.05rem; color:var(--accent); white-space:nowrap; }
+  .stage .detail{ font-size:.78rem; color:#475569; margin-top:.3rem; }
+  .arrow{ text-align:center; color:#cbd5e1; font-size:1rem; font-weight:900; height:14px; line-height:14px; }
+  .arrow.on{ color:var(--accent2); }
+  .stage.row3{ display:block; } .triple{ display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; margin-top:.4rem; }
+  .mini{ border:1px solid var(--line); border-radius:8px; padding:.4rem; text-align:center; background:#fdf2f8; }
+  .mini .ml{ font-size:.64rem; font-weight:800; color:#9d174d; text-transform:uppercase; } .mini .mv{ font-weight:900; font-size:.85rem; }
+
+  .predict{ border:2px dashed var(--accent); background:#fdf2f8; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; display:none; }
+  .predict.show{ display:block; }
+  .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.82rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#fce7f3; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .status{ min-height:26px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.55rem 1.15rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 9 · Operating Budgets</div>
+  <h1>It All Starts With Sales 📋</h1>
+  <p class="subtitle">The master budget is a chain of linked budgets. Sportswear Co. plans next quarter — watch how the sales forecast flows down through production, costs, cash, and the budgeted income statement.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">📋 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+
+
+  <div class="facts">
+    <div class="fact"><span class="fact-label">Sales forecast</span><span class="fact-val">1,000 units at $40</span></div>
+    <div class="fact"><span class="fact-label">Desired ending inv.</span><span class="fact-val">200 units</span></div>
+    <div class="fact"><span class="fact-label">Beginning inv.</span><span class="fact-val">100 units</span></div>
+    <div class="fact"><span class="fact-label">Production needed</span><span class="fact-val">1,100 units</span></div>
+  </div>
+<div class="status" id="status" role="status" aria-live="polite">Click “Next budget” to start with the sales forecast.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="nextBtn" onclick="next()">Next budget →</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+<div class="flow">
+    <div class="stage" id="s0">
+      <div class="sh"><div><div class="st">1 · Sales Budget</div><div class="sd">Forecast: 1,000 hoodies × $40</div></div><div class="sv">$40,000</div></div>
+      <div class="detail">The starting point — everything else is built from this forecast.</div>
+    </div>
+    <div class="arrow" id="a0">▼ units to sell</div>
+
+    <div class="stage" id="s1">
+      <div class="sh"><div><div class="st">2 · Production Budget</div><div class="sd">Units to make</div></div><div class="sv">1,100 units</div></div>
+      <div class="detail">1,000 to sell + 200 desired ending inventory − 100 beginning inventory = <strong>1,100 to produce</strong>.</div>
+    </div>
+    <div class="arrow" id="a1">▼ units to produce</div>
+
+    <div class="stage row3" id="s2">
+      <div class="sh"><div class="st">3 · Manufacturing Cost Budgets</div><div class="sd">1,100 units</div></div>
+      <div class="triple">
+        <div class="mini"><div class="ml">Materials</div><div class="mv">$13,200</div></div>
+        <div class="mini"><div class="ml">Labor</div><div class="mv">$8,800</div></div>
+        <div class="mini"><div class="ml">Overhead</div><div class="mv">$5,500</div></div>
+      </div>
+    </div>
+    <div class="arrow" id="a2">▼ costs &amp; collections</div>
+
+    <div class="stage" id="s3">
+      <div class="sh"><div><div class="st">4 · Cash Budget</div><div class="sd">Collections − payments</div></div><div class="sv">tracks cash</div></div>
+      <div class="detail">Combines cash collected from the sales budget with cash paid for materials, labor &amp; overhead.</div>
+    </div>
+    <div class="arrow" id="a3">▼ revenue &amp; cost</div>
+
+    <div class="stage" id="s4">
+      <div class="sh"><div><div class="st">5 · Budgeted Income Statement</div><div class="sd">Sales − COGS − S&amp;A</div></div><div class="sv">$10,000</div></div>
+      <div class="detail">$40,000 sales − $25,000 COGS − $5,000 selling &amp; admin = <strong>$10,000 budgeted operating income</strong>.</div>
+    </div>
+  </div>
+
+  <div class="predict" id="predict">
+    <div class="pq">🔮 Predict: units to produce = units to sell + desired ending inventory − ____ ?</div>
+    <div>
+      <button class="pbtn" onclick="predict('begin')">Beginning inventory</button>
+      <button class="pbtn" onclick="predict('sales')">More sales</button>
+      <button class="pbtn" onclick="predict('cash')">Cash on hand</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div><div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>If the sales forecast is wrong, the linked budgets are wrong too. Production also adjusts for desired inventory, so production does not always equal sales.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">Which budget is prepared first and drives all the others?</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Cash budget</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Sales budget</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Production budget</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Budgeted income statement</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Sell 1,000; desired ending inventory 200; beginning inventory 100. Units to produce:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) 1,000</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) 1,100</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) 1,300</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) 900</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">The production budget's output (units to produce) is used directly to prepare the:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Direct materials, direct labor, and overhead budgets</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Sales budget</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Prior year's balance sheet</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Tax return</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>The master budget links operating plans together so one assumption flows through the company.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Sales budget:</strong> Starting point for many operating budgets.</li><li><strong>Production budget:</strong> Units to produce based on sales and desired inventory.</li><li><strong>Direct materials budget:</strong> Materials needed for production.</li><li><strong>Cash budget:</strong> Expected receipts, payments, and financing.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>One sales forecast can affect production, materials, labor, overhead, and cash.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Required production = budgeted sales + desired ending inventory - beginning inventory.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Order</strong> the budgets in the master budget, starting with sales.</li>
+    <li><strong>Compute</strong> required production = sales + desired ending inventory − beginning inventory.</li>
+    <li><strong>Trace</strong> how one budget's output feeds the next.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 9 · Operating budgets</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+let step=-1, predicted=false;
+const statusMsgs=[
+  '✅ Sales Budget set: $40,000. Everything flows from here.',
+  '✅ Production Budget: make 1,100 hoodies (adjusted for inventory).',
+  '✅ Cost budgets built from 1,100 units: materials, labor, overhead.',
+  '✅ Cash Budget tracks money in and out.',
+  '🎉 Budgeted operating income: $10,000. Master budget complete!'
+];
+function next(){
+  if(step>=4) return;
+  step++;
+  $('s'+step).classList.add('on');
+  if(step>0) $('a'+(step-1)).classList.add('on');
+  if(step===1) $('predict').classList.add('show');
+  $('status').innerHTML=statusMsgs[step]; $('status').style.color= step===4?'#059669':'';
+  $('nextBtn').textContent = step>=4 ? 'Complete ✓' : 'Next budget →';
+  $('nextBtn').disabled = step>=4;
+}
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='begin', fb)) return; predicted=true; if(ans==='begin'){ fb.textContent='✅ Correct! Subtract beginning inventory — you already have those units, so you don\'t need to make them: 1,000 + 200 − 100 = 1,100.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ Subtract BEGINNING inventory (units already on hand): 1,000 + 200 − 100 = 1,100.'; fb.style.color='#dc2626'; }
+}
+function resetAll(){ resetPredictGates();
+  step=-1; predicted=false;
+  for(let i=0;i<=4;i++){ $('s'+i).classList.remove('on'); if(i<4)$('a'+i).classList.remove('on'); }
+  $('predict').classList.remove('show'); $('pfb').textContent='';
+  $('nextBtn').textContent='Next budget →'; $('nextBtn').disabled=false;
+  $('status').textContent='Click “Next budget” to start with the sales forecast.'; $('status').style.color='';
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'A'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: the sales budget is prepared first because expected sales drive production, purchases, labor, overhead, and many other budgets.",
+    "err": "Not quite. Solution: most operating budgets depend on sales volume, so the sales budget starts the master budget process."
+  },
+  "q2": {
+    "ok": "Correct. Solution: units to produce = budgeted sales + desired ending inventory - beginning inventory = 1,000 + 200 - 100 = 1,100 units.",
+    "err": "Not quite. Solution: production must cover sales and desired ending inventory, but beginning inventory is already available. 1,000 + 200 - 100 = 1,100 units."
+  },
+  "q3": {
+    "ok": "Correct. Solution: the production budget tells how many units must be made. That unit amount is then used to prepare budgets such as direct materials, direct labor, and manufacturing overhead.",
+    "err": "Not quite. Solution: once units to produce are known, the company can budget the inputs needed to make those units, especially direct materials."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight') next(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Favorable Isn't Always Good — Interpreting Variances</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#3730a3; --accent2:#818cf8; --fav:#16a34a; --unfav:#dc2626; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1000px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:710px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .progress{ text-align:center; font-size:.74rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.5rem; }
+  .filter-label{ text-align:center; font-size:.8rem; font-weight:800; color:var(--muted); margin:-.2rem 0 .7rem; }
+  .scard{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.2rem; background:#fafbff; }
+  .scard .stype{ font-size:.66rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); }
+  .scard .stext{ font-size:1.02rem; font-weight:700; margin:.4rem 0 .2rem; }
+
+  .predict-row{ display:flex; gap:.6rem; justify-content:center; margin:.8rem 0 .3rem; }
+  .pbtn{ padding:.55rem 1.4rem; border-radius:10px; font-weight:800; font-size:.92rem; cursor:pointer; border:2px solid; background:#fff; }
+  .pbtn.fav{ border-color:var(--fav); color:var(--fav);} .pbtn.fav:hover{ background:#f0fdf4; }
+  .pbtn.unfav{ border-color:var(--unfav); color:var(--unfav);} .pbtn.unfav:hover{ background:#fef2f2; }
+
+  .reveal{ margin-top:.7rem; border-radius:12px; padding:.85rem 1rem; display:none; }
+  .reveal.show{ display:block; animation:rise .35s ease; } @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .reveal .label{ font-weight:900; font-size:1rem; } .reveal .cause{ font-size:.88rem; margin-top:.35rem; }
+  .reveal.fav{ background:#f0fdf4; border:2px solid #86efac; } .reveal.fav .label{ color:var(--fav);}
+  .reveal.unfav{ background:#fef2f2; border:2px solid #fca5a5; } .reveal.unfav .label{ color:var(--unfav);}
+  .goodflag{ margin-top:.5rem; font-size:.84rem; font-weight:800; padding:.4rem .6rem; border-radius:8px; background:#fffbeb; border:1px dashed #fbbf24; color:#92400e; }
+
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; margin-top:1rem; }
+  .btn{ padding:.55rem 1.2rem; border:none; border-radius:9px; font-weight:800; font-size:.84rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 10 · Interpreting Variances</div>
+  <h1>Favorable Isn't Always Good 🚦</h1>
+  <p class="subtitle">A variance tells you the <em>direction</em> versus standard — but not whether it's truly good news. Read each clue at the bakery, label it favorable or unfavorable, then see what really happened.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">🚦 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+  
+  <div class="facts">
+    <div class="fact"><span class="fact-label">DM price</span><span class="fact-val">$1.40 actual vs $1.50 std</span></div>
+    <div class="fact"><span class="fact-label">DM quantity</span><span class="fact-val">2,200 actual vs 2,000 std</span></div>
+    <div class="fact"><span class="fact-label">DL rate</span><span class="fact-val">$22 actual vs $20 std</span></div>
+    <div class="fact"><span class="fact-label">DL efficiency</span><span class="fact-val">Actual hours below standard</span></div>
+  </div>
+<div class="progress" id="progress">Clue 1 of 4</div>
+  <div class="filter-label">Predict first: label the variance, then reveal why.</div>
+  <div class="scard" id="scard">
+    <div class="stype" id="sType"></div>
+    <div class="stext" id="sText"></div>
+    <div class="predict-row" id="predictRow">
+      <button class="pbtn fav" onclick="answer('fav')">✅ Favorable</button>
+      <button class="pbtn unfav" onclick="answer('unfav')">❌ Unfavorable</button>
+    </div>
+    <div class="pfb" id="clueHint" role="status" aria-live="polite"></div>
+    <div class="reveal" id="reveal" role="status" aria-live="polite">
+      <div class="label" id="revLabel"></div>
+      <div class="cause" id="revCause"></div>
+      <div class="goodflag" id="goodFlag"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-accent" id="nextBtn" onclick="nextClue()" disabled>Next clue →</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Restart</button>
+  </div>
+
+  <div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Favorable/unfavorable are clues, not verdicts. Always ask what caused the variance.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">A favorable direct materials price variance is <em>always</em> good news.</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) True</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) False — cheaper materials can cause waste or quality problems</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) True, if the company is profitable</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) True, only for labor</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">Paying a higher-than-standard wage rate is an unfavorable rate variance, but it might be worthwhile if it produces:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) A favorable efficiency variance (skilled workers waste less time)</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) More unfavorable variances</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) Higher fixed costs</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) Lower sales</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">The best response to any variance is to:</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) Ignore unfavorable ones</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) Investigate its cause before judging it</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) Always reward favorable ones</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) Change the standard immediately</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>Favorable and unfavorable labels need interpretation, not automatic praise or blame.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>Favorable:</strong> A variance that increases profit relative to standard.</li><li><strong>Unfavorable:</strong> A variance that decreases profit relative to standard.</li><li><strong>Cause:</strong> The operating reason behind a variance.</li><li><strong>Investigation:</strong> Looking into variances large enough to matter.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Favorable is not always good if it came from lower quality, delays, or underinvestment.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Variance sign depends on whether actual cost is above or below standard cost. Then interpret the business reason.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Classify</strong> direct materials and direct labor variances as favorable or unfavorable.</li>
+    <li><strong>Investigate</strong> the cause behind a variance, not just its label.</li>
+    <li><strong>Recognize</strong> that variances are interconnected — one can cause another.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 10 · Interpreting cost variances</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const clues=[
+  { type:"Direct Materials · Price", text:"The purchasing manager bought flour at $1.40/lb instead of the $1.50 standard.", ans:"fav",
+    cause:"Actual price ($1.40) is below standard ($1.50), so the price variance is favorable.",
+    good:"⚠️ But is it good? The bargain flour was lower grade — watch what it does next." },
+  { type:"Direct Materials · Quantity", text:"Bakers used 2,200 lbs of that flour instead of the 2,000-lb standard.", ans:"unfav",
+    cause:"Actual quantity (2,200) exceeds standard (2,000), so the quantity variance is unfavorable.",
+    good:"🔗 Linked! The cheap flour crumbled and was wasted — the favorable price CAUSED this unfavorable quantity." },
+  { type:"Direct Labor · Rate", text:"The bakery paid experienced bakers $22/hr instead of the $20 standard rate.", ans:"unfav",
+    cause:"Actual rate ($22) is above standard ($20), so the labor rate variance is unfavorable.",
+    good:"🤔 Maybe worth it — experienced bakers are faster. Keep reading…" },
+  { type:"Direct Labor · Efficiency", text:"Those experienced bakers finished the batch in fewer hours than the standard allowed.", ans:"fav",
+    cause:"Actual hours are below standard, so the labor efficiency variance is favorable.",
+    good:"✅ The higher wage (unfavorable rate) bought speed (favorable efficiency). The trade-off may net out positive." },
+];
+let idx=0;
+function show(){
+  const c=clues[idx];
+  $('progress').textContent='Clue '+(idx+1)+' of '+clues.length;
+  $('sType').textContent=c.type; $('sText').textContent='“'+c.text+'”';
+  $('predictRow').style.display='flex';
+  $('reveal').className='reveal'; $('revLabel').textContent=''; $('revCause').textContent=''; $('goodFlag').textContent='';
+  $('clueHint').textContent='';
+  $('nextBtn').disabled=true;
+  $('nextBtn').textContent = idx===clues.length-1 ? 'Finish ✓' : 'Next clue →';
+}
+function answer(choice){
+  const c=clues[idx]; const correct=choice===c.ans;
+  if(!predictGate('variance-clue-'+idx, correct, $('clueHint'), 'Hint: compare actual cost with the standard. Lower cost is favorable; higher cost is unfavorable. Try once more.')) return;
+  $('predictRow').style.display='none';
+  $('clueHint').textContent='';
+  const r=$('reveal'); r.className='reveal show '+c.ans;
+  $('revLabel').textContent = (correct?'✅ Correct — ':'❌ Actually ') + (c.ans==='fav'?'FAVORABLE':'UNFAVORABLE');
+  $('revCause').textContent=c.cause;
+  $('goodFlag').textContent=c.good;
+  $('nextBtn').disabled=false;
+}
+function nextClue(){
+  if(idx<clues.length-1){ idx++; show(); }
+  else { $('sType').textContent='Done'; $('sText').innerHTML='🎉 You read all four clues. Notice how a favorable price led to waste, and a higher wage bought efficiency — <strong>always investigate the cause</strong>.'; $('predictRow').style.display='none'; $('reveal').className='reveal'; $('nextBtn').disabled=true; $('progress').textContent='Complete'; }
+}
+function resetAll(){ resetPredictGates(); idx=0; show(); }
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'A',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: the statement is false. A favorable price variance can come from lower prices, but it may also signal lower-quality materials or other problems.",
+    "err": "Not quite. Solution: favorable does not automatically mean good. Managers still investigate whether the lower price caused quality, waste, or efficiency issues."
+  },
+  "q2": {
+    "ok": "Correct. Solution: a higher wage rate is unfavorable by rate alone, but it can be worthwhile if more skilled workers reduce time, waste, rework, or other costs.",
+    "err": "Not quite. Solution: variances should be interpreted together. Paying a higher rate may be acceptable if it improves efficiency or quality enough to offset the rate variance."
+  },
+  "q3": {
+    "ok": "Correct. Solution: the best response is to investigate important variances and understand their causes before acting. A variance is a signal, not a verdict.",
+    "err": "Not quite. Solution: do not automatically punish or ignore variances. Managers should investigate material variances and consider the business context."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'&&!$('nextBtn').disabled) nextClue(); });
+show();
+</script>
+</body>
+</html>

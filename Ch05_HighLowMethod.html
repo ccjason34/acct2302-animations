@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Two Points, One Cost Formula — The High-Low Method</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root{
+    --ink:#172233; --muted:#5d6a7a; --line:#d7e0ea; --panel:#fff;
+    --accent:#c0392b; --accent2:#e57373; --hi:#dc2626; --lo:#2563eb; --shadow:0 8px 26px rgba(23,34,51,.10);
+  }
+  body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(180deg,#f8fafc,#edf3f7); color:var(--ink); min-height:100vh; line-height:1.5; }
+  .wrap{ width:min(1020px,100%); margin:0 auto; padding:1.5rem 1rem 3rem; }
+  header{ text-align:center; }
+  .kicker{ color:var(--accent); font-size:.76rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; margin-bottom:6px; }
+  header h1{ font-size:clamp(1.3rem,3.3vw,1.85rem); font-weight:800; }
+  .subtitle{ color:var(--muted); font-size:.96rem; max-width:700px; margin:.55rem auto 0; }
+  .lo{ background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; box-shadow:var(--shadow); padding:1rem 1.25rem; margin:1.25rem auto 0; max-width:760px; }
+  .lo h2{ font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:.5rem; }
+  .lo ul{ list-style:none; display:grid; gap:.35rem; }
+  .lo li{ font-size:.9rem; color:#384455; padding-left:1.4rem; position:relative; }
+  .lo li::before{ content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:900; }
+  .tab-bar{ display:flex; gap:.5rem; justify-content:center; padding:1.25rem 0 .25rem; }
+  .tab-btn{ padding:.45rem 1.5rem; border:2px solid var(--line); background:transparent; border-radius:20px; font-size:.88rem; font-weight:800; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:hover:not(.active){ border-color:#a0aec0; color:var(--ink); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:1.25rem; margin-top:1rem; }
+
+
+  .facts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:0 0 1.1rem}
+  .fact{display:flex;flex-direction:column;align-items:center;gap:.12rem;background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:.55rem 1.05rem;min-width:150px;text-align:center;box-shadow:0 4px 14px rgba(23,34,51,.09)}
+  .fact-label{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0;color:var(--muted);line-height:1.1}
+  .fact-val{display:block;font-size:1.12rem;font-weight:900;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  @media(max-width:640px){.facts{justify-content:stretch}.fact{flex:1 1 100%;min-width:0}.fact-val{font-size:1rem}}
+  .grid2{ display:grid; grid-template-columns:1fr 1.1fr; gap:1rem; }
+  table.data{ width:100%; border-collapse:collapse; font-size:.85rem; }
+  table.data th,table.data td{ padding:.4rem .5rem; text-align:right; border-bottom:1px solid var(--line); }
+  table.data th:first-child,table.data td:first-child{ text-align:left; }
+  table.data thead th{ font-size:.66rem; text-transform:uppercase; color:var(--muted); }
+  tr.hi{ background:#fef2f2; } tr.lo{ background:#eff6ff; }
+  tr.hi td{ color:#b91c1c; font-weight:800; } tr.lo td{ color:#1d4ed8; font-weight:800; }
+  .tagpt{ font-size:.6rem; font-weight:800; padding:.05rem .35rem; border-radius:5px; margin-left:.3rem; }
+  .tagpt.h{ background:#fee2e2; color:#b91c1c; } .tagpt.l{ background:#dbeafe; color:#1d4ed8; }
+
+  .chartwrap{ background:#fcfdff; border:1px solid var(--line); border-radius:12px; padding:.4rem; }
+  svg{ width:100%; height:auto; display:block; }
+
+  .work{ margin-top:1rem; border:2px dashed var(--accent); border-radius:12px; padding:1rem; }
+  .work .line{ font-size:.95rem; font-weight:700; margin:.35rem 0; color:#475569; opacity:.4; transition:opacity .3s; }
+  .work .line.on{ opacity:1; color:var(--ink); }
+  .work .big{ color:var(--accent); font-weight:900; }
+  .final{ margin-top:.6rem; text-align:center; font-size:1.25rem; font-weight:900; color:var(--accent); display:none; }
+  .final.show{ display:block; animation:pop .4s ease; } @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .predict{ border:2px dashed var(--accent); background:#fdf2f0; border-radius:12px; padding:.85rem 1rem; margin:.9rem 0; display:none; }
+  .predict.show{ display:block; } .predict .pq{ font-weight:800; font-size:.9rem; margin-bottom:.5rem; }
+  .pbtn{ padding:.45rem 1rem; border:2px solid var(--accent); background:#fff; color:var(--accent); border-radius:8px; font-weight:800; font-size:.82rem; cursor:pointer; margin:.2rem; }
+  .pbtn:hover{ background:#fde4e0; } .pfb{ margin-top:.5rem; font-size:.83rem; font-weight:700; min-height:1rem; }
+
+  .status{ min-height:26px; text-align:center; font-weight:800; font-size:.9rem; margin:.7rem 0; }
+  .controls{ display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:.55rem 1.1rem; border:none; border-radius:9px; font-weight:800; font-size:.82rem; color:#fff; cursor:pointer; } .btn:focus-visible{ outline:3px solid #1116; outline-offset:2px; } .btn:disabled{ opacity:.4; }
+  .btn-accent{ background:linear-gradient(135deg,var(--accent),var(--accent2)); } .btn-gray{ background:linear-gradient(135deg,#64748b,#94a3b8);}
+
+  .trap{ background:#fff7ed; border:1px solid #fed7aa; border-left:5px solid #f59e0b; border-radius:12px; padding:.85rem 1.1rem; margin-top:1rem; }
+  .trap h3{ font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:#b45309; margin-bottom:.3rem; }
+  .trap p{ font-size:.86rem; color:#7c5310; }
+
+  .practice{ display:grid; gap:1rem; }
+  .q-card{ border:2px solid var(--line); border-radius:14px; padding:1.1rem 1.25rem; }
+  .q-num{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:800; }
+  .q-text{ font-size:1rem; font-weight:800; margin:.3rem 0 .8rem; }
+  .opt{ display:flex; gap:.7rem; align-items:center; border:2px solid var(--line); border-radius:9px; padding:.6rem .85rem; cursor:pointer; font-size:.9rem; margin-bottom:.45rem; }
+  .opt:hover:not(.locked){ border-color:#94a3b8; background:#f3f7fb; } .opt input{ accent-color:var(--accent); }
+  .opt.correct{ border-color:#34d399; background:#ecfdf5; } .opt.wrong{ border-color:#f87171; background:#fef2f2; }
+  .q-fb{ font-size:.84rem; font-weight:700; margin-top:.4rem; min-height:1rem; } .q-fb.ok{ color:#059669; } .q-fb.err{ color:#dc2626; }
+  .practice-foot{ text-align:center; display:grid; gap:.6rem; justify-items:center; } .score{ font-size:1.05rem; font-weight:900; display:none; }
+  
+  .student-support{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:1rem;margin-top:1rem;display:grid;gap:.85rem}
+  .support-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap}
+  .support-head h2{font-size:1rem;line-height:1.25}
+  .support-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin-bottom:.25rem}
+  .support-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+  .support-item{border:1px solid var(--line);border-radius:10px;background:#f8fafc;padding:.8rem}
+  .support-item p,.support-item li{font-size:.84rem;color:#334155;line-height:1.45}
+  .support-item ul{list-style:none;display:grid;gap:.35rem}
+  .support-item strong{color:var(--ink)}
+  .math-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:.75rem}
+  .math-box summary{cursor:pointer;font-weight:900;color:var(--accent);font-size:.88rem}
+  .math-box p{margin-top:.45rem;color:#334155;font-size:.86rem;line-height:1.45}
+  .reference-chip{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:.45rem .7rem;text-decoration:none;font-size:.78rem;font-weight:900}
+  .reference-chip:hover{background:#f8fafc}
+  @media(max-width:760px){.support-grid{grid-template-columns:1fr}.support-head{align-items:flex-start}}
+  footer{ text-align:center; color:var(--muted); font-size:.8rem; padding:1.4rem 1rem .4rem; border-top:1px solid var(--line); margin-top:1.6rem; }
+  @media(max-width:720px){ .grid2{ grid-template-columns:1fr; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Chapter 5 · Splitting a Mixed Cost</div>
+  <h1>Two Points, One Cost Formula 📈</h1>
+  <p class="subtitle">Use the high and low activity points to split a mixed cost into fixed cost and variable rate.</p>
+</header>
+
+
+<div class="tab-bar" role="tablist" aria-label="Lesson views">
+  <button class="tab-btn active" id="tab-anim" role="tab" aria-selected="true" aria-controls="pane-anim" onclick="switchTab('anim')">📈 Animation</button>
+  <button class="tab-btn" id="tab-practice" role="tab" aria-selected="false" aria-controls="pane-practice" onclick="switchTab('practice')">📝 Practice</button>
+</div>
+
+<section class="panel" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" aria-hidden="false">
+
+
+  <div class="facts">
+    <div class="fact"><span class="fact-label">High activity</span><span class="fact-val">3,000 hrs, $8,000</span></div>
+    <div class="fact"><span class="fact-label">Low activity</span><span class="fact-val">1,000 hrs, $4,000</span></div>
+    <div class="fact"><span class="fact-label">Variable rate</span><span class="fact-val">$2 per oven hr</span></div>
+    <div class="fact"><span class="fact-label">Fixed cost</span><span class="fact-val">$2,000</span></div>
+  </div>
+<div class="status" id="status" role="status" aria-live="polite">Find the high and low points to begin.</div>
+  <div class="controls">
+    <button class="btn btn-accent" id="b0" onclick="goHL()">1 · Pick High &amp; Low</button>
+    <button class="btn btn-accent" id="b1" onclick="goRate()" disabled>2 · Variable Rate</button>
+    <button class="btn btn-accent" id="b2" onclick="goFixed()" disabled>3 · Fixed Cost</button>
+    <button class="btn btn-accent" id="b3" onclick="goFormula()" disabled>4 · Build the Formula</button>
+    <button class="btn btn-gray" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+<div class="grid2">
+    <div>
+      <table class="data">
+        <thead><tr><th>Month</th><th>Oven hours</th><th>Utility cost</th></tr></thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+    <div class="chartwrap">
+      <svg viewBox="0 0 520 280" role="img" aria-label="Scatter of cost vs oven hours">
+        <line x1="55" y1="250" x2="500" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="55" y1="20"  x2="55"  y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="278" y="274" text-anchor="middle" font-size="11" fill="#5d6a7a" font-weight="700">Oven hours</text>
+        <text x="16" y="135" text-anchor="middle" font-size="11" fill="#5d6a7a" font-weight="700" transform="rotate(-90 16 135)">Utility cost ($)</text>
+        <g id="grid"></g>
+        <line id="hlLine" stroke="#c0392b" stroke-width="2.5" style="display:none"/>
+        <g id="dots"></g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="predict" id="predict">
+    <div class="pq">🔮 Predict: which two months does the high-low method use?</div>
+    <div>
+      <button class="pbtn" onclick="predict('act')">Highest &amp; lowest oven HOURS</button>
+      <button class="pbtn" onclick="predict('cost')">Highest &amp; lowest COST</button>
+    </div>
+    <div class="pfb" id="pfb" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="work">
+    <div class="line" id="w1">High point: 3,000 hrs, $8,000 &nbsp;·&nbsp; Low point: 1,000 hrs, $4,000</div>
+    <div class="line" id="w2">Variable rate (b) = ($8,000 − $4,000) ÷ (3,000 − 1,000) = $4,000 ÷ 2,000 = <span class="big">$2 / oven hour</span></div>
+    <div class="line" id="w3">Fixed cost (a) = $8,000 − ($2 × 3,000) = $8,000 − $6,000 = <span class="big">$2,000</span></div>
+    <div class="final" id="final">Cost = $2,000 + $2 × (oven hours)</div>
+  </div><div class="trap">
+    <h3>⚠️ Common Trap</h3>
+    <p>Pick the high and low by <strong>activity</strong> (the x-driver: oven hours), <em>not</em> by cost. And remember high-low uses only <strong>two</strong> of the data points and ignores the rest — it's fast, but a regression that uses every point is more accurate.</p>
+  </div>
+</section>
+
+<section class="panel" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" aria-hidden="true" style="display:none">
+  <div class="practice">
+    <div class="q-card" id="q1" role="group" aria-labelledby="q1-text">
+      <div class="q-num">Practice 1 of 3</div>
+      <div class="q-text" id="q1-text">In the high-low method, you choose the two points with the highest and lowest:</div>
+      <label class="opt"><input type="radio" name="q1" value="A"> A) Total cost</label>
+      <label class="opt"><input type="radio" name="q1" value="B"> B) Activity level (the driver)</label>
+      <label class="opt"><input type="radio" name="q1" value="C"> C) Fixed cost</label>
+      <label class="opt"><input type="radio" name="q1" value="D"> D) Profit</label>
+      <div class="q-fb" id="fb1" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q2" role="group" aria-labelledby="q2-text">
+      <div class="q-num">Practice 2 of 3</div>
+      <div class="q-text" id="q2-text">High: 3,000 hrs/$8,000. Low: 1,000 hrs/$4,000. The variable rate is:</div>
+      <label class="opt"><input type="radio" name="q2" value="A"> A) $4 per hour</label>
+      <label class="opt"><input type="radio" name="q2" value="B"> B) $2 per hour</label>
+      <label class="opt"><input type="radio" name="q2" value="C"> C) $2,000 per hour</label>
+      <label class="opt"><input type="radio" name="q2" value="D"> D) $0.50 per hour</label>
+      <div class="q-fb" id="fb2" role="status" aria-live="polite"></div>
+    </div>
+    <div class="q-card" id="q3" role="group" aria-labelledby="q3-text">
+      <div class="q-num">Practice 3 of 3</div>
+      <div class="q-text" id="q3-text">After the variable rate is estimated, what does the fixed-cost part of the high-low equation represent?</div>
+      <label class="opt"><input type="radio" name="q3" value="A"> A) The cost that changes with every extra activity hour</label>
+      <label class="opt"><input type="radio" name="q3" value="B"> B) The base cost left after removing the variable portion</label>
+      <label class="opt"><input type="radio" name="q3" value="C"> C) The highest activity level</label>
+      <label class="opt"><input type="radio" name="q3" value="D"> D) The total cost at the low point only</label>
+      <div class="q-fb" id="fb3" role="status" aria-live="polite"></div>
+    </div>
+    <div class="practice-foot">
+      <button class="btn btn-accent" onclick="checkPractice()">Check My Work</button>
+      <div class="score" id="score" role="status" aria-live="polite"></div>
+      <button class="btn btn-gray" id="retry" onclick="retryPractice()" style="display:none">↺ Try Again</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="student-support" aria-label="Student support before Practice">
+  <div class="support-head">
+    <div><div class="support-k">Before Practice</div><h2>Check The Idea In Plain Language</h2></div>
+    <a class="reference-chip" href="student-reference.html">Terms &amp; formulas</a>
+  </div>
+  <div class="support-grid">
+    <div class="support-item"><div class="support-k">Why This Matters</div><p>High-low gives a quick way to estimate a mixed-cost formula from two observed activity levels.</p></div>
+    <div class="support-item"><div class="support-k">Key Terms</div><ul><li><strong>High-low method:</strong> Uses highest and lowest activity points to estimate cost behavior.</li><li><strong>Variable rate:</strong> Change in cost divided by change in activity.</li><li><strong>Fixed cost:</strong> Total cost minus variable portion.</li><li><strong>Mixed cost:</strong> Cost with fixed and variable components.</li></ul></div>
+    <div class="support-item"><div class="support-k">Takeaway</div><p>Use the high and low activity points, not simply the highest and lowest costs.</p></div>
+  </div>
+  <details class="math-box"><summary>Show The Math</summary><p>Variable rate = (high cost - low cost) / (high activity - low activity). Fixed cost = total cost - variable rate x activity.</p></details>
+</section>
+
+<div class="lo">
+  <h2>Learning Objectives</h2>
+  <ul>
+    <li><strong>Select</strong> the correct high and low points (based on activity).</li>
+    <li><strong>Calculate</strong> the variable rate = change in cost ÷ change in activity.</li>
+    <li><strong>Solve</strong> for fixed cost and write the cost equation y = a + bx.</li>
+  </ul>
+</div>
+
+<footer>Reference: Heisinger &amp; Hoyle, <i>Fundamentals of Managerial Accounting</i>, v3.0 (FlatWorld) — Ch 5 · High-low method</footer>
+</div>
+
+<script>
+const PROGRESS_KEY = 'acct2302AnimationProgress';
+function markLessonComplete(){
+  try {
+    const file = location.pathname.split('/').pop() || document.title;
+    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+    data[file] = { completed:true, completedAt:new Date().toISOString(), title:document.title };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch (err) {}
+}
+function predictGate(key, correct, fb, hint){
+  window.__predictTries = window.__predictTries || {};
+  if (correct) { window.__predictTries[key] = 0; return true; }
+  const tries = (window.__predictTries[key] || 0) + 1;
+  window.__predictTries[key] = tries;
+  if (tries === 1) {
+    fb.textContent = hint || 'Hint: use the formula or highlighted numbers, then try once more.';
+    fb.style.color = '#b45309';
+    return false;
+  }
+  return true;
+}
+function resetPredictGates(){ window.__predictTries = {}; }
+const $=id=>document.getElementById(id);
+const data=[
+  {m:'Jan',h:1000,c:4000},{m:'Feb',h:1500,c:5200},{m:'Mar',h:1800,c:5500},
+  {m:'Apr',h:2000,c:6100},{m:'May',h:2400,c:7000},{m:'Jun',h:3000,c:8000}
+];
+const MAXH=3200, MAXC=9000, X0=55,X1=500,Y0=250,Y1=20;
+const xs=h=>X0+(h/MAXH)*(X1-X0), ys=c=>Y0-(c/MAXC)*(Y0-Y1);
+let step=0, predicted=false;
+
+(function init(){
+  let g='';
+  for(let c=0;c<=8000;c+=2000){ g+=`<line x1="55" y1="${ys(c)}" x2="500" y2="${ys(c)}" stroke="#eef2f6"/><text x="50" y="${ys(c)+4}" text-anchor="end" font-size="9" fill="#9aa7b6">${(c/1000)}k</text>`; }
+  for(let h=0;h<=3000;h+=1000){ g+=`<text x="${xs(h)}" y="264" text-anchor="middle" font-size="9" fill="#9aa7b6">${h}</text>`; }
+  $('grid').innerHTML=g;
+  $('dataBody').innerHTML=data.map(d=>`<tr id="row-${d.m}"><td>${d.m}</td><td>${d.h.toLocaleString()}</td><td>$${d.c.toLocaleString()}</td></tr>`).join('');
+  drawDots();
+})();
+function drawDots(){
+  $('dots').innerHTML=data.map(d=>{
+    const isHi=d.h===3000, isLo=d.h===1000;
+    const fill = step>=1 ? (isHi?'#dc2626':isLo?'#2563eb':'#cbd5e1') : '#94a3b8';
+    const r = step>=1 && (isHi||isLo) ? 7 : 5;
+    return `<circle cx="${xs(d.h)}" cy="${ys(d.c)}" r="${r}" fill="${fill}" stroke="#fff" stroke-width="1.5"/>`;
+  }).join('');
+}
+function goHL(){
+  if(step>0) return; step=1;
+  document.getElementById('row-Jun').className='hi';
+  document.getElementById('row-Jan').className='lo';
+  $('dataBody').querySelector('#row-Jun td:first-child').innerHTML='Jun <span class="tagpt h">HIGH</span>';
+  $('dataBody').querySelector('#row-Jan td:first-child').innerHTML='Jan <span class="tagpt l">LOW</span>';
+  drawDots(); $('w1').classList.add('on');
+  $('predict').classList.add('show');
+  $('status').innerHTML='Use the months with the most (3,000) and fewest (1,000) oven hours.';
+  $('b0').disabled=true; $('b1').disabled=false;
+}
+function goRate(){ if(step!==1)return; step=2; $('w2').classList.add('on'); $('status').innerHTML='Variable rate = rise ÷ run = <strong>$2 per oven hour</strong>.'; $('b1').disabled=true; $('b2').disabled=false; }
+function goFixed(){ if(step!==2)return; step=3; $('w3').classList.add('on'); $('status').innerHTML='Fixed cost = total − variable portion = <strong>$2,000</strong>.'; $('b2').disabled=true; $('b3').disabled=false; }
+function goFormula(){
+  if(step!==3)return; step=4; $('final').classList.add('show');
+  $('hlLine').style.display='';
+  $('hlLine').setAttribute('x1',xs(1000)); $('hlLine').setAttribute('y1',ys(4000));
+  $('hlLine').setAttribute('x2',xs(3000)); $('hlLine').setAttribute('y2',ys(8000));
+  $('status').innerHTML='🎉 Cost equation: <strong>$2,000 + $2 × oven hours</strong>. The red line connects the high &amp; low points.';
+  $('status').style.color='#059669'; $('b3').disabled=true;
+}
+function predict(ans){
+  if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='act', fb)) return; predicted=true; if(ans==='act'){ fb.textContent='✅ Correct! Always choose the highest and lowest ACTIVITY (oven hours), never the cost.'; fb.style.color='#059669'; }
+  else { fb.textContent='❌ Use the highest and lowest ACTIVITY (oven hours), not cost. Here those happen to be Jun and Jan.'; fb.style.color='#dc2626'; }
+}
+function resetAll(){ resetPredictGates();
+  step=0; predicted=false;
+  data.forEach(d=>{ const r=document.getElementById('row-'+d.m); r.className=''; r.querySelector('td:first-child').textContent=d.m; });
+  ['w1','w2','w3'].forEach(id=>$(id).classList.remove('on')); $('final').classList.remove('show'); $('hlLine').style.display='none';
+  $('predict').classList.remove('show'); $('pfb').textContent=''; drawDots();
+  $('b0').disabled=false; $('b1').disabled=true; $('b2').disabled=true; $('b3').disabled=true;
+  $('status').textContent='Find the high and low points to begin.'; $('status').style.color='';
+}
+function switchTab(t){
+  const isAnim = t === 'anim';
+  $('tab-anim').classList.toggle('active', isAnim);
+  $('tab-practice').classList.toggle('active', !isAnim);
+  $('tab-anim').setAttribute('aria-selected', isAnim ? 'true' : 'false');
+  $('tab-practice').setAttribute('aria-selected', isAnim ? 'false' : 'true');
+  $('pane-anim').style.display = isAnim ? '' : 'none';
+  $('pane-practice').style.display = isAnim ? 'none' : '';
+  $('pane-anim').setAttribute('aria-hidden', isAnim ? 'false' : 'true');
+  $('pane-practice').setAttribute('aria-hidden', isAnim ? 'true' : 'false');
+}
+const answers={q1:'B',q2:'B',q3:'B'};
+const fbk={
+  "q1": {
+    "ok": "Correct. Solution: the high-low method chooses the observations with the highest and lowest activity levels, not necessarily the highest and lowest costs.",
+    "err": "Not quite. Solution: high-low is based on activity. Pick the highest activity point and the lowest activity point, then compare their costs."
+  },
+  "q2": {
+    "ok": "Correct. Solution: variable rate = change in cost / change in activity = ($8,000 - $4,000) / (3,000 - 1,000) = $4,000 / 2,000 = $2 per hour.",
+    "err": "Not quite. Solution: subtract the low point from the high point: cost change $4,000 and activity change 2,000 hours. $4,000 / 2,000 = $2 per hour."
+  },
+  "q3": {
+    "ok": "Correct. Solution: the fixed-cost estimate is the base amount that remains after the variable portion has been separated from total cost.",
+    "err": "Not quite. Solution: high-low separates mixed cost into variable and fixed parts. The fixed part is the base cost left after removing the variable cost caused by activity."
+  }
+};
+function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'){ if(step===0)goHL(); else if(step===1)goRate(); else if(step===2)goFixed(); else if(step===3)goFormula(); } });
+</script>
+</body>
+</html>

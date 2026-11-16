@@ -502,6 +502,11 @@ const fbk={
   }
 };
 function checkPractice(){
+  const missing=['q1','q2','q3'].filter(q=>!$(q).querySelector('input:checked'));
+  if(missing.length){
+    missing.forEach(q=>{const fb=$('fb'+q.slice(1));fb.textContent='Pick an answer before checking your work.';fb.className='q-fb err';});
+    $(missing[0]).querySelector('input').focus();return;
+  }
   let score=0;
   ['q1','q2','q3'].forEach(q=>{
     const card=$(q); const sel=card.querySelector('input[name="'+q+'"]:checked'); const fb=$('fb'+q.slice(1));

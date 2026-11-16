@@ -156,7 +156,7 @@
 <div class="timeline" id="timeline"></div>
 
   <div class="results">
-    <div class="res"><div class="rl">PV of inflows</div><div class="rv" id="r-pv">$40,000</div></div>
+    <div class="res"><div class="rl">PV of inflows</div><div class="rv" id="r-pv">—</div></div>
     <div class="res npv" id="npvBox"><div class="rl">Net Present Value</div><div class="rv" id="r-npv">—</div></div>
     <div class="res"><div class="rl">Payback period</div><div class="rv" id="r-pb">3.0 yrs</div></div>
   </div>
@@ -175,7 +175,7 @@
   </div>
   <div class="case-box" aria-label="Real-world case">
     <h3>Real-World Case: Amazon Bets on Cash Flow, Not Earnings</h3>
-    <p>In its 1997 shareholder letter, Amazon told investors it manages for long-term free cash flow, not quarterly accounting earnings &mdash; stating that a share is "worth only the present value of [its] future cash flows, not&hellip; future earnings." That is exactly the idea behind NPV.</p>
+    <p>In its 2004 shareholder letter, Amazon told investors it manages for long-term free cash flow, not quarterly accounting earnings &mdash; stating that a share is "worth only the present value of [its] future cash flows, not&hellip; future earnings." That is exactly the idea behind NPV.</p>
     <div class="case-grid">
       <div class="case-card"><strong>Earnings are not value</strong><p>Accounting profit does not directly equal the cash a business produces.</p></div>
       <div class="case-card"><strong>Discount the cash</strong><p>Value is the present value of the expected future cash flows.</p></div>
@@ -315,7 +315,7 @@ function setRate(r,el){
 }
 function resetBars(){
   for(let y=1;y<=YEARS;y++){ const b=$('bar'+y); b.style.height=NOMH+'px'; b.textContent='$10,000'; $('ghost'+y).style.display='none'; $('pv'+y).textContent=''; }
-  $('r-pv').textContent='$40,000'; $('r-npv').textContent='—'; const box=$('npvBox'); box.style.borderColor='var(--line)'; box.style.background='#f9fbfd'; $('r-npv').style.color='';
+  $('r-pv').textContent='—'; $('r-npv').textContent='—'; const box=$('npvBox'); box.style.borderColor='var(--line)'; box.style.background='#f9fbfd'; $('r-npv').style.color='';
 }
 function predict(ans){
   if(predicted)return; const fb=$('pfb'); if(!predictGate('pfb', ans==='less', fb)) return; predicted=true; if(ans==='less'){ fb.textContent='✅ Correct! Money in the future is worth LESS today because you lose the chance to invest it now. That\'s why we discount.'; fb.style.color='#059669'; }
@@ -348,7 +348,13 @@ const fbk={
     "err": "Not quite. Solution: the payback method is simple, but it can ignore important cash flows that occur after the investment has paid back."
   }
 };
-function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function checkPractice(){
+  const missing=['q1','q2','q3'].filter(q=>!$(q).querySelector('input:checked'));
+  if(missing.length){
+    missing.forEach(q=>{const fb=$('fb'+q.slice(1));fb.textContent='Pick an answer before checking your work.';fb.className='q-fb err';});
+    $(missing[0]).querySelector('input').focus();return;
+  }
+   let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
 function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
 document.addEventListener('keydown',e=>{ if(e.target.matches('input,button,textarea'))return; if(e.key==='ArrowRight'&&!discounted) discount(); });
 buildTimeline();

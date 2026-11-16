@@ -341,7 +341,13 @@ const fbk={
     "err": "Not quite. Solution: use only the costs that differ between alternatives. If making is $10 per unit and buying is $9 per unit, buying is cheaper by $1 per unit."
   }
 };
-function checkPractice(){ let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
+function checkPractice(){
+  const missing=['q1','q2','q3'].filter(q=>!$(q).querySelector('input:checked'));
+  if(missing.length){
+    missing.forEach(q=>{const fb=$('fb'+q.slice(1));fb.textContent='Pick an answer before checking your work.';fb.className='q-fb err';});
+    $(missing[0]).querySelector('input').focus();return;
+  }
+   let score=0; ['q1','q2','q3'].forEach(q=>{ const card=$(q), sel=card.querySelector('input[name="'+q+'"]:checked'), fb=$('fb'+q.slice(1)); card.querySelectorAll('.opt').forEach(o=>o.classList.add('locked')); card.querySelectorAll('input').forEach(r=>r.disabled=true); if(!sel){ fb.textContent='⚠️ Pick an answer.'; fb.className='q-fb err'; return; } const val=sel.value, cor=answers[q]; card.querySelectorAll('.opt').forEach(o=>{ const v=o.querySelector('input').value; if(v===cor)o.classList.add('correct'); else if(v===val)o.classList.add('wrong'); }); if(val===cor){ score++; fb.textContent=fbk[q].ok; fb.className='q-fb ok'; } else { fb.textContent=fbk[q].err; fb.className='q-fb err'; } }); if(score===3) markLessonComplete(); const sb=$('score'); sb.style.display='block'; sb.textContent= score===3?'🎉 Perfect! 3 / 3':'Practice result: '+score+' / 3 — review the feedback and try again.'; sb.style.color= score===3?'#059669':'#b45309'; $('retry').style.display= score<3?'':'none'; }
 function retryPractice(){ ['q1','q2','q3'].forEach(q=>{ const card=$(q); card.querySelectorAll('.opt').forEach(o=>o.classList.remove('locked','correct','wrong')); card.querySelectorAll('input').forEach(r=>{ r.checked=false; r.disabled=false; }); $('fb'+q.slice(1)).textContent=''; }); $('score').style.display='none'; $('retry').style.display='none'; }
 showItem();
 </script>
